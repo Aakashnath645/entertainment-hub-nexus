@@ -56,7 +56,7 @@ export const posts: Post[] = [
   {
     id: '3',
     title: 'Apple Vision Pro: Redefining Spatial Computing',
-    excerpt: 'Hands-on with Apple's revolutionary new device that merges digital content with the physical world.',
+    excerpt: 'Hands-on with Apple\'s revolutionary new device that merges digital content with the physical world.',
     content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl nec ultricies tincidunt, nisl nisl aliquam nisl, eget aliquam nisl nisl sit amet nisl.',
     category: 'tech',
     imageUrl: 'https://images.unsplash.com/photo-1617791160505-6f00504e3519?q=80&w=2069&auto=format&fit=crop',
@@ -70,7 +70,7 @@ export const posts: Post[] = [
   },
   {
     id: '4',
-    title: 'Inside Elden Ring's Massive DLC: Shadow of the Erdtree',
+    title: 'Inside Elden Ring\'s Massive DLC: Shadow of the Erdtree',
     excerpt: 'FromSoftware expands its masterpiece with challenging new areas and bosses.',
     content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl nec ultricies tincidunt, nisl nisl aliquam nisl, eget aliquam nisl nisl sit amet nisl.',
     category: 'game',
@@ -86,7 +86,7 @@ export const posts: Post[] = [
   {
     id: '5',
     title: 'The 10 Most Anticipated Movies of 2024',
-    excerpt: 'From superhero epics to indie darlings, these are the films you won't want to miss.',
+    excerpt: 'From superhero epics to indie darlings, these are the films you won\'t want to miss.',
     content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl nec ultricies tincidunt, nisl nisl aliquam nisl, eget aliquam nisl nisl sit amet nisl.',
     category: 'movie',
     imageUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2025&auto=format&fit=crop',
@@ -116,7 +116,7 @@ export const posts: Post[] = [
   {
     id: '7',
     title: 'The Evolution of Christopher Nolan: From Memento to Oppenheimer',
-    excerpt: 'Tracking the career of one of cinema's most innovative directors.',
+    excerpt: 'Tracking the career of one of cinema\'s most innovative directors.',
     content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl nec ultricies tincidunt, nisl nisl aliquam nisl, eget aliquam nisl nisl sit amet nisl.',
     category: 'movie',
     imageUrl: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop',
