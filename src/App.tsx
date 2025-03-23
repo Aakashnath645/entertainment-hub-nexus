@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Post from "./pages/Post";
 import Category from "./pages/Category";
@@ -13,6 +14,11 @@ import NotFound from "./pages/NotFound";
 import SignIn from "./pages/Auth/SignIn";
 import SignUp from "./pages/Auth/SignUp";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
+import AdminDashboard from "./pages/Admin/Dashboard";
+import AdminIndex from "./pages/Admin/Index";
+import AdminPosts from "./pages/Admin/Posts";
+import AdminSchedule from "./pages/Admin/Schedule";
+import AdminSEO from "./pages/Admin/SEO";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +37,19 @@ const App = () => (
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }>
+                <Route index element={<AdminIndex />} />
+                <Route path="posts" element={<AdminPosts />} />
+                <Route path="schedule" element={<AdminSchedule />} />
+                <Route path="seo" element={<AdminSEO />} />
+              </Route>
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
