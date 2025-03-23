@@ -37,12 +37,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    try {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setCurrentUser(user);
+        setLoading(false);
+      });
+      
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error setting up auth state listener:", error);
       setLoading(false);
-    });
-
-    return unsubscribe;
+      return () => {};
+    }
   }, []);
 
   const signup = async (email: string, password: string) => {

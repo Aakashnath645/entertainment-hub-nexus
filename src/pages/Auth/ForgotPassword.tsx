@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -35,7 +34,6 @@ const ForgotPassword: React.FC = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to reset password. Email may not be registered.",
-        icon: <AlertCircle className="h-5 w-5" />
       });
     } finally {
       setLoading(false);

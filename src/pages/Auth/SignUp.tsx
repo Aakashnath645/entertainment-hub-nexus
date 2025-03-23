@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -40,7 +39,6 @@ const SignUp: React.FC = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to create an account. Email may already be in use.",
-        icon: <AlertCircle className="h-5 w-5" />
       });
     } finally {
       setLoading(false);
@@ -63,7 +61,6 @@ const SignUp: React.FC = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to sign up with Google.",
-        icon: <AlertCircle className="h-5 w-5" />
       });
     } finally {
       setLoading(false);

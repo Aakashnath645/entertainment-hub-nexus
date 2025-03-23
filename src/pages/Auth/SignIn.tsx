@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -35,7 +34,6 @@ const SignIn: React.FC = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to sign in. Please check your credentials.",
-        icon: <AlertCircle className="h-5 w-5" />
       });
     } finally {
       setLoading(false);
@@ -58,7 +56,6 @@ const SignIn: React.FC = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to sign in with Google.",
-        icon: <AlertCircle className="h-5 w-5" />
       });
     } finally {
       setLoading(false);
