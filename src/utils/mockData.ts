@@ -28,12 +28,12 @@ export const heroPost: Post = {
   imageUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
   author: {
     name: 'Alex Johnson',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
   },
   date: '2023-05-15',
   readTime: 8,
   featured: true,
-  trending: true,
+  trending: true
 };
 
 export const posts: Post[] = [
@@ -47,11 +47,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1630517481487-8f2391d71e1f?q=80&w=2070&auto=format&fit=crop',
     author: {
       name: 'Samantha Lee',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+      avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
     },
     date: '2023-05-12',
     readTime: 6,
-    featured: true,
+    featured: true
   },
   {
     id: '3',
@@ -62,11 +62,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1617791160505-6f00504e3519?q=80&w=2069&auto=format&fit=crop',
     author: {
       name: 'David Chen',
-      avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
+      avatar: 'https://randomuser.me/api/portraits/men/75.jpg'
     },
     date: '2023-05-10',
     readTime: 7,
-    featured: true,
+    featured: true
   },
   {
     id: '4',
@@ -77,11 +77,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop',
     author: {
       name: 'Marcus Reed',
-      avatar: 'https://randomuser.me/api/portraits/men/22.jpg',
+      avatar: 'https://randomuser.me/api/portraits/men/22.jpg'
     },
     date: '2023-05-08',
     readTime: 5,
-    popular: true,
+    popular: true
   },
   {
     id: '5',
@@ -92,11 +92,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2025&auto=format&fit=crop',
     author: {
       name: 'Jasmine Wong',
-      avatar: 'https://randomuser.me/api/portraits/women/33.jpg',
+      avatar: 'https://randomuser.me/api/portraits/women/33.jpg'
     },
     date: '2023-05-05',
     readTime: 10,
-    popular: true,
+    popular: true
   },
   {
     id: '6',
@@ -107,11 +107,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1526378722484-bd91ca387e72?q=80&w=1934&auto=format&fit=crop',
     author: {
       name: 'Ryan Black',
-      avatar: 'https://randomuser.me/api/portraits/men/41.jpg',
+      avatar: 'https://randomuser.me/api/portraits/men/41.jpg'
     },
     date: '2023-05-03',
     readTime: 8,
-    popular: true,
+    popular: true
   },
   {
     id: '7',
@@ -122,11 +122,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop',
     author: {
       name: 'Emma Davis',
-      avatar: 'https://randomuser.me/api/portraits/women/17.jpg',
+      avatar: 'https://randomuser.me/api/portraits/women/17.jpg'
     },
     date: '2023-04-28',
     readTime: 12,
-    trending: true,
+    trending: true
   },
   {
     id: '8',
@@ -137,11 +137,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?q=80&w=2070&auto=format&fit=crop',
     author: {
       name: 'Omar Hakeem',
-      avatar: 'https://randomuser.me/api/portraits/men/55.jpg',
+      avatar: 'https://randomuser.me/api/portraits/men/55.jpg'
     },
     date: '2023-04-25',
     readTime: 7,
-    trending: true,
+    trending: true
   },
   {
     id: '9',
@@ -152,11 +152,11 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=1974&auto=format&fit=crop',
     author: {
       name: 'Leila Patel',
-      avatar: 'https://randomuser.me/api/portraits/women/62.jpg',
+      avatar: 'https://randomuser.me/api/portraits/women/62.jpg'
     },
     date: '2023-04-22',
     readTime: 9,
-    trending: true,
+    trending: true
   },
   {
     id: '10',
@@ -167,12 +167,12 @@ export const posts: Post[] = [
     imageUrl: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop',
     author: {
       name: 'Chris Thompson',
-      avatar: 'https://randomuser.me/api/portraits/men/91.jpg',
+      avatar: 'https://randomuser.me/api/portraits/men/91.jpg'
     },
     date: '2023-04-18',
     readTime: 11,
-    trending: true,
-  },
+    trending: true
+  }
 ];
 
 export const trendingTopics = [
@@ -180,7 +180,7 @@ export const trendingTopics = [
   { id: '2', name: 'AI in Gaming', count: 18 },
   { id: '3', name: 'Virtual Reality', count: 15 },
   { id: '4', name: 'Indie Games', count: 12 },
-  { id: '5', name: 'Streaming Wars', count: 10 },
+  { id: '5', name: 'Streaming Wars', count: 10 }
 ];
 
 export const getPostsByCategory = (category: Category): Post[] => {
