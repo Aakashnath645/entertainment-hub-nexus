@@ -1,4 +1,3 @@
-
 export type Category = 'movie' | 'game' | 'tech';
 
 export interface Post {
@@ -17,6 +16,7 @@ export interface Post {
   featured?: boolean;
   trending?: boolean;
   popular?: boolean;
+  scheduledDate?: Date;
 }
 
 export const heroPost: Post = {
@@ -182,6 +182,8 @@ export const trendingTopics = [
   { id: '4', name: 'Indie Games', count: 12 },
   { id: '5', name: 'Streaming Wars', count: 10 }
 ];
+
+export const mockPosts = posts;
 
 export const getPostsByCategory = (category: Category): Post[] => {
   return posts.filter(post => post.category === category);
