@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import ThemeToggle from '../ui/ThemeToggle';
 import SearchBar from '../ui/SearchBar';
+import UserProfile from '../user/UserProfile';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -70,10 +71,11 @@ const Navbar: React.FC = () => {
           </Link>
         </nav>
         
-        {/* Desktop Search and Theme Toggle */}
-        <div className="hidden md:flex items-center space-x-2">
+        {/* Desktop Search, Theme Toggle and User Profile */}
+        <div className="hidden md:flex items-center space-x-4">
           <SearchBar className="w-64" />
           <ThemeToggle />
+          <UserProfile />
         </div>
         
         {/* Mobile Menu Button */}
@@ -119,8 +121,13 @@ const Navbar: React.FC = () => {
               </Link>
             </nav>
             
-            <div className="mt-auto mb-8 flex justify-center">
+            <div className="mt-8 flex justify-center space-x-4">
               <ThemeToggle />
+              <UserProfile />
+            </div>
+            
+            <div className="mt-auto mb-8 flex justify-center">
+              <p className="text-sm text-muted-foreground">© 2023 NexusBlog</p>
             </div>
           </div>
         </div>
