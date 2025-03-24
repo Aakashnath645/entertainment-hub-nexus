@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Settings, Edit, BarChart } from 'lucide-react';
+import { LogOut, User, Settings, Edit, BarChart, Shield } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const UserProfile: React.FC = () => {
   const { isAdmin, logout, adminEmail } = useAuth();
@@ -25,14 +26,24 @@ const UserProfile: React.FC = () => {
 
   if (!isAdmin) {
     return (
-      <div className="flex space-x-2">
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin-login')}>
-          Admin Login
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin-signup')}>
-          Admin Signup
-        </Button>
-      </div>
+      <Tooltip>
+        <TooltipProvider>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate('/admin-login')}
+              className="rounded-full h-8 w-8 opacity-70 hover:opacity-100"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="sr-only">Admin Area</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Admin Area</p>
+          </TooltipContent>
+        </TooltipProvider>
+      </Tooltip>
     );
   }
 

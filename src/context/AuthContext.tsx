@@ -8,6 +8,7 @@ interface AuthContextProps {
   logout: () => void;
   adminEmail: string | null;
   setAdminEmail: (email: string | null) => void;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -57,12 +58,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAdminEmail(null);
   };
 
+  // Mock function for password reset
+  const resetPassword = async (email: string) => {
+    // This is a mock implementation since we're not using Firebase auth
+    console.log(`Password reset requested for: ${email}`);
+    // Add a slight delay to simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return Promise.resolve();
+  };
+
   const value = {
     isAdmin: isAdminState,
     login,
     logout,
     adminEmail,
-    setAdminEmail
+    setAdminEmail,
+    resetPassword
   };
 
   return (
