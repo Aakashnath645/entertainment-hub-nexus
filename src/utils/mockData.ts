@@ -42,6 +42,19 @@ export const demoAuthor: Author = {
 // Empty posts array - we'll add real content through the admin interface
 export const posts: Post[] = [];
 
+// Sample hero post for the homepage
+export const heroPost: Post = {
+  id: 'hero-post',
+  title: 'Welcome to the Entertainment Blog',
+  excerpt: 'A place for all your entertainment news, reviews, and insights.',
+  content: 'This is a placeholder for the hero post content. Add real content through the admin interface.',
+  category: 'tech',
+  imageUrl: '/placeholder.svg',
+  author: demoAuthor,
+  date: new Date().toISOString(),
+  readTime: 5
+};
+
 export const trendingTopics = [
   { id: '1', name: 'Superhero Films', count: 0 },
   { id: '2', name: 'AI in Gaming', count: 0 },
