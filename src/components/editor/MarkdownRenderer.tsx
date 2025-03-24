@@ -17,7 +17,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
 
   // Convert markdown to HTML and sanitize
   const createMarkup = () => {
-    const rawMarkup = marked.parse(content);
+    // Use marked.parse with a callback to handle the synchronous case
+    const rawMarkup = marked.parse(content || '', { async: false }) as string;
     const sanitizedMarkup = DOMPurify.sanitize(rawMarkup);
     return { __html: sanitizedMarkup };
   };
