@@ -11,9 +11,7 @@ import Index from "./pages/Index";
 import Post from "./pages/Post";
 import Category from "./pages/Category";
 import NotFound from "./pages/NotFound";
-import SignIn from "./pages/Auth/SignIn";
-import SignUp from "./pages/Auth/SignUp";
-import ForgotPassword from "./pages/Auth/ForgotPassword";
+import AdminLogin from "./pages/Auth/AdminLogin";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import AdminIndex from "./pages/Admin/Index";
 import AdminPosts from "./pages/Admin/Posts";
@@ -34,9 +32,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/post/:id" element={<Post />} />
               <Route path="/category/:category" element={<Category />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/admin-login" element={<AdminLogin />} />
               
               {/* Admin Routes */}
               <Route path="/admin" element={

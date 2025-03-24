@@ -1,25 +1,10 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail
-} from 'firebase/auth';
-import { auth } from '@/config/firebase';
+import React, { createContext, useContext, useState } from 'react';
 
 interface AuthContextProps {
-  currentUser: User | null;
-  loading: boolean;
-  signup: (email: string, password: string) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  isAdmin: boolean;
+  login: (password: string) => boolean;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -33,58 +18,28 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    try {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setCurrentUser(user);
-        setLoading(false);
-      });
-      
-      return unsubscribe;
-    } catch (error) {
-      console.error("Error setting up auth state listener:", error);
-      setLoading(false);
-      return () => {};
-    }
-  }, []);
-
-  const signup = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+  const login = (password: string) => {
+    // Simple password check for admin access
+    const validPassword = password === import.meta.env.VITE_ADMIN_PASSWORD || password === "admin123";
+    setIsAdmin(validPassword);
+    return validPassword;
   };
 
-  const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const loginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
-
-  const logout = async () => {
-    await signOut(auth);
-  };
-
-  const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email);
+  const logout = () => {
+    setIsAdmin(false);
   };
 
   const value = {
-    currentUser,
-    loading,
-    signup,
+    isAdmin,
     login,
-    logout,
-    loginWithGoogle,
-    resetPassword
+    logout
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

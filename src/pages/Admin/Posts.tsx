@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -15,8 +13,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -29,31 +25,57 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash } from 'lucide-react';
+import { Plus, Edit, Trash, Eye } from 'lucide-react';
 import { mockPosts } from '@/utils/mockData';
+import RichTextEditor from '@/components/editor/RichTextEditor';
+import MarkdownRenderer from '@/components/editor/MarkdownRenderer';
+import { toast } from 'sonner';
 
 const AdminPosts: React.FC = () => {
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const [posts, setPosts] = useState(mockPosts);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSavePost = () => {
-    // In a real app, this would save to the database
-    toast({
-      title: "Success",
-      description: "Post has been saved successfully",
-    });
-    setIsOpen(false);
+  const handleSavePost = (postData: any) => {
+    setIsSaving(true);
+    
+    // Simulate API call with timeout
+    setTimeout(() => {
+      if (selectedPost) {
+        // Update existing post
+        setPosts(posts.map(post => 
+          post.id === selectedPost.id 
+            ? { ...post, ...postData, date: new Date().toISOString() } 
+            : post
+        ));
+        toast.success("Post updated successfully");
+      } else {
+        // Create new post
+        const newPost = {
+          id: String(Date.now()),
+          ...postData,
+          author: {
+            name: "Admin User",
+            avatar: "/placeholder.svg"
+          },
+          date: new Date().toISOString(),
+          readTime: Math.ceil(postData.content.length / 1000),
+        };
+        setPosts([newPost, ...posts]);
+        toast.success("Post created successfully");
+      }
+      
+      setIsSaving(false);
+      setIsOpen(false);
+    }, 1000);
   };
 
   const handleDelete = (id: string) => {
-    // In a real app, this would delete from the database
     setPosts(posts.filter(post => post.id !== id));
-    toast({
-      title: "Success",
-      description: "Post has been deleted successfully",
-    });
+    toast.success("Post deleted successfully");
   };
 
   return (
@@ -62,94 +84,55 @@ const AdminPosts: React.FC = () => {
         <h1 className="text-2xl font-bold">Manage Posts</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setSelectedPost(null)}>
+            <Button onClick={() => {
+              setSelectedPost(null);
+              setPreviewMode(false);
+            }}>
               <Plus className="mr-2 h-4 w-4" /> New Post
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[625px]">
+          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{selectedPost ? 'Edit Post' : 'Create New Post'}</DialogTitle>
-              <DialogDescription>
-                {selectedPost 
-                  ? 'Make changes to your post here.' 
-                  : 'Fill in the details to create a new post.'}
-              </DialogDescription>
+              <DialogTitle>
+                {previewMode 
+                  ? (selectedPost ? `Preview: ${selectedPost.title}` : 'Preview Post')
+                  : (selectedPost ? 'Edit Post' : 'Create New Post')
+                }
+              </DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="title">Title</label>
-                <Input 
-                  id="title" 
-                  placeholder="Enter post title" 
-                  defaultValue={selectedPost?.title || ''}
+            
+            {previewMode ? (
+              <div className="py-4">
+                <div className="mb-4 flex justify-between">
+                  <h1 className="text-2xl font-bold">{selectedPost?.title || 'Post Title'}</h1>
+                  <Button variant="outline" onClick={() => setPreviewMode(false)}>
+                    Back to Editor
+                  </Button>
+                </div>
+                <MarkdownRenderer 
+                  content={selectedPost?.content || ''} 
+                  className="mt-4"
                 />
               </div>
-              <div className="grid gap-2">
-                <label htmlFor="excerpt">Excerpt</label>
-                <Input 
-                  id="excerpt" 
-                  placeholder="Brief summary" 
-                  defaultValue={selectedPost?.excerpt || ''}
+            ) : (
+              <div className="py-4">
+                <RichTextEditor
+                  initialContent={selectedPost?.content || ''}
+                  onSave={handleSavePost}
+                  isSaving={isSaving}
                 />
+                {selectedPost && (
+                  <div className="flex justify-center mt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setPreviewMode(true)}
+                    >
+                      Preview Post
+                    </Button>
+                  </div>
+                )}
               </div>
-              <div className="grid gap-2">
-                <label htmlFor="content">Content</label>
-                <Textarea 
-                  id="content" 
-                  placeholder="Write your post content here..." 
-                  rows={8}
-                  defaultValue={selectedPost?.content || ''}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <label htmlFor="category">Category</label>
-                  <Input 
-                    id="category" 
-                    placeholder="e.g., movie, game, tech" 
-                    defaultValue={selectedPost?.category || ''}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <label htmlFor="imageUrl">Image URL</label>
-                  <Input 
-                    id="imageUrl" 
-                    placeholder="https://example.com/image.jpg" 
-                    defaultValue={selectedPost?.imageUrl || ''}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="featured" 
-                    defaultChecked={selectedPost?.featured || false}
-                  />
-                  <label htmlFor="featured">Featured</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="trending" 
-                    defaultChecked={selectedPost?.trending || false}
-                  />
-                  <label htmlFor="trending">Trending</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="popular" 
-                    defaultChecked={selectedPost?.popular || false}
-                  />
-                  <label htmlFor="popular">Popular</label>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={handleSavePost}>Save</Button>
-            </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -187,10 +170,22 @@ const AdminPosts: React.FC = () => {
                       size="icon"
                       onClick={() => {
                         setSelectedPost(post);
+                        setPreviewMode(false);
                         setIsOpen(true);
                       }}
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedPost(post);
+                        setPreviewMode(true);
+                        setIsOpen(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
