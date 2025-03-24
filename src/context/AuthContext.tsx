@@ -1,10 +1,13 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { isAdmin } from '@/config/firebase';
 
 interface AuthContextProps {
   isAdmin: boolean;
   login: (password: string) => boolean;
   logout: () => void;
+  adminEmail: string | null;
+  setAdminEmail: (email: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -18,23 +21,48 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminState, setIsAdmin] = useState(false);
+  const [adminEmail, setAdminEmail] = useState<string | null>(
+    localStorage.getItem('adminEmail')
+  );
+
+  // Check if admin is logged in from localStorage on component mount
+  useEffect(() => {
+    const storedAdmin = localStorage.getItem('isAdmin') === 'true';
+    setIsAdmin(storedAdmin);
+  }, []);
+
+  // Update localStorage when isAdmin changes
+  useEffect(() => {
+    localStorage.setItem('isAdmin', isAdminState.toString());
+  }, [isAdminState]);
+
+  // Update localStorage when adminEmail changes
+  useEffect(() => {
+    if (adminEmail) {
+      localStorage.setItem('adminEmail', adminEmail);
+    } else {
+      localStorage.removeItem('adminEmail');
+    }
+  }, [adminEmail]);
 
   const login = (password: string) => {
-    // Simple password check for admin access
-    const validPassword = password === import.meta.env.VITE_ADMIN_PASSWORD || password === "admin123";
+    const validPassword = isAdmin(password);
     setIsAdmin(validPassword);
     return validPassword;
   };
 
   const logout = () => {
     setIsAdmin(false);
+    setAdminEmail(null);
   };
 
   const value = {
-    isAdmin,
+    isAdmin: isAdminState,
     login,
-    logout
+    logout,
+    adminEmail,
+    setAdminEmail
   };
 
   return (

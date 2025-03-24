@@ -12,6 +12,7 @@ import Post from "./pages/Post";
 import Category from "./pages/Category";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/Auth/AdminLogin";
+import AdminSignup from "./pages/Auth/AdminSignup";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import AdminIndex from "./pages/Admin/Index";
 import AdminPosts from "./pages/Admin/Posts";
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/post/:id" element={<Post />} />
               <Route path="/category/:category" element={<Category />} />
               <Route path="/admin-login" element={<AdminLogin />} />
+              <Route path="/admin-signup" element={<AdminSignup />} />
               
               {/* Admin Routes */}
               <Route path="/admin" element={
