@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock } from 'lucide-react';
+import { Clock, User } from 'lucide-react';
 import { Post } from '@/utils/mockData';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface PostCardProps {
   post: Post;
@@ -66,11 +67,13 @@ const PostCard: React.FC<PostCardProps> = ({
             <p className="text-muted-foreground line-clamp-2">{post.excerpt}</p>
             <div className="flex items-center pt-2 gap-4">
               <div className="flex items-center gap-2">
-                <img 
-                  src={post.author.avatar} 
-                  alt={post.author.name}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
+                <Avatar className="h-8 w-8">
+                  <AvatarImage 
+                    src={post.author.avatar} 
+                    alt={post.author.name}
+                  />
+                  <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                </Avatar>
                 <span className="text-sm font-medium">{post.author.name}</span>
               </div>
               <div className="flex items-center text-muted-foreground">
@@ -167,11 +170,13 @@ const PostCard: React.FC<PostCardProps> = ({
         <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{post.excerpt}</p>
         <div className="flex items-center mt-auto gap-4">
           <div className="flex items-center gap-2">
-            <img 
-              src={post.author.avatar} 
-              alt={post.author.name}
-              className="h-6 w-6 rounded-full object-cover"
-            />
+            <Avatar className="h-6 w-6">
+              <AvatarImage 
+                src={post.author.avatar} 
+                alt={post.author.name}
+              />
+              <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+            </Avatar>
             <span className="text-xs">{post.author.name}</span>
           </div>
           <div className="flex items-center text-muted-foreground">

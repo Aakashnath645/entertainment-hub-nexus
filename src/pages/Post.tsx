@@ -9,12 +9,17 @@ import {
   Twitter,
   Linkedin,
   MessageSquare,
-  ArrowLeft
+  ArrowLeft,
+  Globe,
+  Mail
 } from 'lucide-react';
 import { Post as PostType, getPostById, getPostsByCategory } from '@/utils/mockData';
 import PostCard from '@/components/posts/PostCard';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import MarkdownRenderer from '@/components/editor/MarkdownRenderer';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 const Post: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -115,12 +120,17 @@ const Post: React.FC = () => {
               
               <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
                 <div className="flex items-center gap-3">
-                  <img 
-                    src={post.author.avatar} 
-                    alt={post.author.name}
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
-                  <span className="font-medium">{post.author.name}</span>
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage 
+                      src={post.author.avatar} 
+                      alt={post.author.name}
+                    />
+                    <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <span className="font-medium block">{post.author.name}</span>
+                    <span className="text-xs text-muted-foreground">{post.author.role}</span>
+                  </div>
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Calendar className="h-4 w-4 mr-2" />
@@ -155,45 +165,66 @@ const Post: React.FC = () => {
           
           {/* Article content */}
           <div className="max-w-3xl mx-auto prose prose-lg dark:prose-invert prose-a:text-primary prose-headings:font-bold prose-img:rounded-xl mb-16">
-            <p>
-              {post.content}
-            </p>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt, nisl nec ultricies tincidunt, nisl nisi aliquam nisl, eget aliquam nisl nisl sit amet nisl. Sed euismod, nisl nec ultricies tincidunt, nisl nisl aliquam nisl, eget aliquam nisl nisl sit amet nisl.
-            </p>
-            <h2>The Future of Entertainment</h2>
-            <p>
-              Curabitur blandit tempus porttitor. Maecenas faucibus mollis interdum. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Nullam quis risus eget urna mollis ornare vel eu leo. Cras mattis consectetur purus sit amet fermentum.
-            </p>
-            <blockquote>
-              "The entertainment industry is constantly evolving, pushed forward by technological advancements and changing consumer preferences."
-            </blockquote>
-            <p>
-              Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Cras mattis consectetur purus sit amet fermentum. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Nullam id dolor id nibh ultricies vehicula ut id elit.
-            </p>
+            <MarkdownRenderer content={post.content} />
           </div>
           
-          {/* Author bio */}
+          {/* Author bio - enhanced section */}
           <div className="max-w-3xl mx-auto mb-16">
-            <div className="p-6 bg-card border border-border rounded-xl">
-              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-                <img 
-                  src={post.author.avatar} 
-                  alt={post.author.name}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-                <div>
-                  <h3 className="text-lg font-bold mb-2">About {post.author.name}</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Entertainment journalist and critic with over 10 years of experience. Specializes in film analysis and gaming culture.
+            <div className="p-8 bg-card border border-border rounded-xl">
+              <h3 className="text-xl font-bold mb-6 border-b pb-4">About the Author</h3>
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex-shrink-0 flex flex-col items-center">
+                  <Avatar className="w-32 h-32">
+                    <AvatarImage 
+                      src={post.author.avatar} 
+                      alt={post.author.name}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="text-3xl">{post.author.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  
+                  {post.author.social && (
+                    <div className="flex gap-2 mt-4">
+                      {post.author.social.twitter && (
+                        <a href={post.author.social.twitter} target="_blank" rel="noopener noreferrer" 
+                           className="p-2 rounded-full hover:bg-secondary transition-colors">
+                          <Twitter className="h-4 w-4" />
+                        </a>
+                      )}
+                      {post.author.social.linkedin && (
+                        <a href={post.author.social.linkedin} target="_blank" rel="noopener noreferrer"
+                           className="p-2 rounded-full hover:bg-secondary transition-colors">
+                          <Linkedin className="h-4 w-4" />
+                        </a>
+                      )}
+                      {post.author.social.website && (
+                        <a href={post.author.social.website} target="_blank" rel="noopener noreferrer"
+                           className="p-2 rounded-full hover:bg-secondary transition-colors">
+                          <Globe className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex-1">
+                  <div className="mb-4">
+                    <h4 className="text-xl font-bold">{post.author.name}</h4>
+                    <p className="text-muted-foreground text-sm">{post.author.role}</p>
+                  </div>
+                  
+                  <p className="text-muted-foreground mb-6">
+                    {post.author.bio}
                   </p>
-                  <div className="flex items-center gap-3">
-                    <a href="#" className="text-sm text-primary hover:underline">
-                      View all articles
-                    </a>
-                    <a href="#" className="text-sm text-primary hover:underline">
-                      Follow
-                    </a>
+                  
+                  <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Mail className="h-4 w-4" />
+                      Contact
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      View All Articles
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -273,14 +304,16 @@ const Post: React.FC = () => {
           </div>
           
           {/* Related posts */}
-          <div className="mb-16">
-            <h3 className="text-2xl font-bold mb-8 text-center">Related Articles</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedPosts.map((relatedPost) => (
-                <PostCard key={relatedPost.id} post={relatedPost} />
-              ))}
+          {relatedPosts.length > 0 && (
+            <div className="mb-16">
+              <h3 className="text-2xl font-bold mb-8 text-center">Related Articles</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedPosts.map((relatedPost) => (
+                  <PostCard key={relatedPost.id} post={relatedPost} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           
           {/* Newsletter signup */}
           <div className="max-w-4xl mx-auto">
