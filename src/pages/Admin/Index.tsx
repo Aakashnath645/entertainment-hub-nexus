@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Card,
@@ -10,19 +9,28 @@ import {
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, Calendar, BarChart2, TrendingUp, AlertCircle } from 'lucide-react';
 import { mockPosts } from '@/utils/mockData';
+import { useQuery } from '@tanstack/react-query';
+import { fetchPosts } from '@/api/mockApiService';
 
 const AdminIndex: React.FC = () => {
-  // In a real app, these would be fetched from the server
+  // Use React Query to fetch posts
+  const { data: posts = [] } = useQuery({
+    queryKey: ['posts'],
+    queryFn: fetchPosts,
+    staleTime: 30000, // 30 seconds
+  });
+
+  // Calculate stats based on fetched data
   const stats = {
-    totalPosts: mockPosts.length,
-    publishedPosts: mockPosts.length - 3,
+    totalPosts: posts.length,
+    publishedPosts: posts.length - 3,
     draftPosts: 3,
     scheduledPosts: 5,
     totalViews: 12567,
     averageReadTime: 4.2
   };
 
-  const recentPosts = mockPosts.slice(0, 5);
+  const recentPosts = posts.slice(0, 5);
 
   return (
     <div className="space-y-6">
