@@ -39,7 +39,7 @@ export const demoAuthor: Author = {
   role: 'Editor'
 };
 
-// Empty posts array - we'll add real content through the admin interface
+// Empty posts array - all posts will be dynamically added through the admin interface
 export const posts: Post[] = [];
 
 export const trendingTopics = [
@@ -50,6 +50,7 @@ export const trendingTopics = [
   { id: '5', name: 'Streaming Wars', count: 0 }
 ];
 
+// Export a reference to the posts array so it can be modified anywhere
 export const mockPosts = posts;
 
 export const getPostsByCategory = (category: Category): Post[] => {

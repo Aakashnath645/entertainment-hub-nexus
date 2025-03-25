@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,27 +32,31 @@ import { toast } from 'sonner';
 
 const AdminPosts: React.FC = () => {
   const { toast: uiToast } = useToast();
-  const [posts, setPosts] = useState(mockPosts);
+  const [posts, setPosts] = useState([...mockPosts]);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    setPosts([...mockPosts]);
+  }, [mockPosts]);
+
   const handleSavePost = (postData: any) => {
     setIsSaving(true);
     
-    // Simulate API call with timeout
     setTimeout(() => {
       if (selectedPost) {
-        // Update existing post
-        setPosts(posts.map(post => 
+        const updatedPosts = posts.map(post => 
           post.id === selectedPost.id 
             ? { ...post, ...postData, date: new Date().toISOString() } 
             : post
-        ));
+        );
+        setPosts(updatedPosts);
+        mockPosts.length = 0;
+        updatedPosts.forEach(post => mockPosts.push(post));
         toast.success("Post updated successfully");
       } else {
-        // Create new post
         const newPost = {
           id: String(Date.now()),
           ...postData,
@@ -64,7 +67,10 @@ const AdminPosts: React.FC = () => {
           date: new Date().toISOString(),
           readTime: Math.ceil(postData.content.length / 1000),
         };
-        setPosts([newPost, ...posts]);
+        const updatedPosts = [newPost, ...posts];
+        setPosts(updatedPosts);
+        mockPosts.length = 0;
+        updatedPosts.forEach(post => mockPosts.push(post));
         toast.success("Post created successfully");
       }
       
@@ -74,7 +80,10 @@ const AdminPosts: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    setPosts(posts.filter(post => post.id !== id));
+    const updatedPosts = posts.filter(post => post.id !== id);
+    setPosts(updatedPosts);
+    mockPosts.length = 0;
+    updatedPosts.forEach(post => mockPosts.push(post));
     toast.success("Post deleted successfully");
   };
 
@@ -143,66 +152,83 @@ const AdminPosts: React.FC = () => {
           <CardDescription>Manage and edit your content here</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {posts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell className="font-medium">{post.title}</TableCell>
-                  <TableCell>{post.category}</TableCell>
-                  <TableCell>{new Date(post.date).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                      Published
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setSelectedPost(post);
-                        setPreviewMode(false);
-                        setIsOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setSelectedPost(post);
-                        setPreviewMode(true);
-                        setIsOpen(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleDelete(post.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          {posts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-muted-foreground mb-4">No posts available yet</p>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button onClick={() => {
+                    setSelectedPost(null);
+                    setPreviewMode(false);
+                    setIsOpen(true);
+                  }}>
+                    <Plus className="mr-2 h-4 w-4" /> Create Your First Post
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">{post.title}</TableCell>
+                    <TableCell>{post.category}</TableCell>
+                    <TableCell>{new Date(post.date).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                        Published
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setPreviewMode(false);
+                          setIsOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setPreviewMode(true);
+                          setIsOpen(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleDelete(post.id)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline">Previous</Button>
-          <Button variant="outline">Next</Button>
+          <Button variant="outline" disabled={posts.length === 0}>Previous</Button>
+          <Button variant="outline" disabled={posts.length === 0}>Next</Button>
         </CardFooter>
       </Card>
     </div>
