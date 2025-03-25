@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,36 +25,160 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
-import { Search, FileText, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
+import { Search, FileText, CheckCircle, AlertCircle, HelpCircle, RefreshCw } from 'lucide-react';
 import { mockPosts } from '@/utils/mockData';
 
 const AdminSEO: React.FC = () => {
   const { toast } = useToast();
   const [keyword, setKeyword] = useState('');
-  const [progress, setProgress] = useState(78);
+  const [progress, setProgress] = useState(0);
+  const [indexedUrls, setIndexedUrls] = useState(0);
+  const [lastGenerated, setLastGenerated] = useState('Never');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [issues, setIssues] = useState({
+    keywordUsage: { status: 'pending', message: 'Not analyzed yet' },
+    metaDescription: { status: 'pending', message: 'Not analyzed yet' },
+    contentLength: { status: 'pending', message: 'Not analyzed yet' },
+    readability: { status: 'pending', message: 'Not analyzed yet' }
+  });
+  
+  // Update the SEO score whenever we have new posts
+  useEffect(() => {
+    // Calculate a score based on the number of posts
+    const postCount = mockPosts.length;
+    // Simple calculation: more posts = better SEO
+    const newProgress = Math.min(postCount * 10, 100);
+    setProgress(newProgress);
+    
+    // Update indexed URLs count based on posts
+    setIndexedUrls(postCount);
+    
+    // Update last generated date if we have posts
+    if (postCount > 0) {
+      setLastGenerated(new Date().toLocaleDateString());
+    }
+  }, [mockPosts]);
   
   const generateSitemap = () => {
+    // Show loading state
     toast({
-      title: "Success",
-      description: "Sitemap has been generated and updated",
+      title: "Generating sitemap...",
+      description: "Please wait while we update your sitemap",
     });
+    
+    // Simulate async operation
+    setTimeout(() => {
+      setLastGenerated(new Date().toLocaleDateString());
+      setIndexedUrls(mockPosts.length);
+      
+      toast({
+        title: "Success",
+        description: "Sitemap has been generated and updated",
+      });
+    }, 1500);
   };
 
   const optimizeMetaTags = () => {
     toast({
-      title: "Success",
-      description: "Meta tags have been optimized for all posts",
+      title: "Optimizing meta tags...",
+      description: "Analyzing and updating meta tags for all posts",
     });
+    
+    // Simulate async operation
+    setTimeout(() => {
+      toast({
+        title: "Success",
+        description: "Meta tags have been optimized for all posts",
+      });
+    }, 1500);
   };
 
   const handleSeoCheck = () => {
-    // In a real app, this would analyze the post for SEO issues
-    setTimeout(() => {
+    if (!keyword.trim()) {
       toast({
-        title: "SEO Analysis Complete",
-        description: "Post has been analyzed for SEO optimization",
+        title: "Error",
+        description: "Please enter a target keyword to analyze",
+        variant: "destructive"
       });
-    }, 1500);
+      return;
+    }
+    
+    setIsAnalyzing(true);
+    
+    // Reset issues to "pending" status
+    setIssues({
+      keywordUsage: { status: 'pending', message: 'Analyzing...' },
+      metaDescription: { status: 'pending', message: 'Analyzing...' },
+      contentLength: { status: 'pending', message: 'Analyzing...' },
+      readability: { status: 'pending', message: 'Analyzing...' }
+    });
+    
+    // Simulate analysis with progressive updates
+    setTimeout(() => {
+      setIssues(prev => ({
+        ...prev,
+        keywordUsage: { 
+          status: 'success', 
+          message: `Good keyword placement for "${keyword}". Keyword density is 2.3% which is optimal.`
+        }
+      }));
+      
+      setTimeout(() => {
+        setIssues(prev => ({
+          ...prev,
+          metaDescription: { 
+            status: 'warning', 
+            message: 'Your meta description could be improved. It\'s currently 85 characters, but should be between 120-155 characters for optimal display in search results.'
+          }
+        }));
+        
+        setTimeout(() => {
+          setIssues(prev => ({
+            ...prev,
+            contentLength: { 
+              status: mockPosts.length > 0 ? 'success' : 'error', 
+              message: mockPosts.length > 0 
+                ? 'Content length is good at 750 words. This is within the optimal range for SEO.'
+                : 'You have no articles yet. For better SEO performance, aim to create at least 5-10 articles with 700-1000 words each.'
+            }
+          }));
+          
+          setTimeout(() => {
+            setIssues(prev => ({
+              ...prev,
+              readability: { 
+                status: 'success', 
+                message: 'Your content has a Flesch reading ease score of 65, which is considered "plain English, easily understood by 13-15 year old students."'
+              }
+            }));
+            
+            // Update progress score based on the analysis
+            const newScore = mockPosts.length > 0 ? Math.floor(Math.random() * 30) + 70 : Math.floor(Math.random() * 40) + 30;
+            setProgress(newScore);
+            
+            setIsAnalyzing(false);
+            
+            toast({
+              title: "SEO Analysis Complete",
+              description: `Your SEO score is ${newScore}%`,
+            });
+          }, 500);
+        }, 500);
+      }, 500);
+    }, 500);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle className="h-4 w-4 text-green-500 mr-2" />;
+      case 'warning':
+        return <AlertCircle className="h-4 w-4 text-amber-500 mr-2" />;
+      case 'error':
+        return <AlertCircle className="h-4 w-4 text-red-500 mr-2" />;
+      default:
+        return <HelpCircle className="h-4 w-4 text-muted-foreground mr-2" />;
+    }
   };
 
   return (
@@ -82,9 +206,18 @@ const AdminSEO: React.FC = () => {
                         placeholder="Enter target keyword" 
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
+                        disabled={isAnalyzing}
                       />
-                      <Button onClick={handleSeoCheck}>
-                        <Search className="mr-2 h-4 w-4" /> Analyze
+                      <Button onClick={handleSeoCheck} disabled={isAnalyzing}>
+                        {isAnalyzing ? (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Search className="mr-2 h-4 w-4" /> Analyze
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -104,48 +237,48 @@ const AdminSEO: React.FC = () => {
                       <AccordionItem value="item-1">
                         <AccordionTrigger className="flex">
                           <div className="flex items-center">
-                            <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                            {getStatusIcon(issues.keywordUsage.status)}
                             <span>Keyword Usage</span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                          Good keyword placement in title, headings, and content. Keyword density is 2.3% which is optimal.
+                          {issues.keywordUsage.message}
                         </AccordionContent>
                       </AccordionItem>
                       
                       <AccordionItem value="item-2">
                         <AccordionTrigger className="flex">
                           <div className="flex items-center">
-                            <AlertCircle className="h-4 w-4 text-amber-500 mr-2" />
+                            {getStatusIcon(issues.metaDescription.status)}
                             <span>Meta Description</span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                          Your meta description could be improved. It's currently 85 characters, but should be between 120-155 characters for optimal display in search results.
+                          {issues.metaDescription.message}
                         </AccordionContent>
                       </AccordionItem>
                       
                       <AccordionItem value="item-3">
                         <AccordionTrigger className="flex">
                           <div className="flex items-center">
-                            <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
+                            {getStatusIcon(issues.contentLength.status)}
                             <span>Content Length</span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                          Current content is only 350 words. For better SEO performance, aim for at least 700-1000 words for this topic.
+                          {issues.contentLength.message}
                         </AccordionContent>
                       </AccordionItem>
                       
                       <AccordionItem value="item-4">
                         <AccordionTrigger className="flex">
                           <div className="flex items-center">
-                            <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                            {getStatusIcon(issues.readability.status)}
                             <span>Readability</span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                          Your content has a Flesch reading ease score of 65, which is considered "plain English, easily understood by 13-15 year old students."
+                          {issues.readability.message}
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
@@ -272,11 +405,11 @@ const AdminSEO: React.FC = () => {
                   <div className="mt-4 flex items-center">
                     <div className="flex items-center mr-4">
                       <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-xs">Indexed URLs: 42</span>
+                      <span className="text-xs">Indexed URLs: {indexedUrls}</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-amber-500 rounded-full mr-2"></div>
-                      <span className="text-xs">Last generated: 3 days ago</span>
+                      <span className="text-xs">Last generated: {lastGenerated}</span>
                     </div>
                   </div>
                 </div>
