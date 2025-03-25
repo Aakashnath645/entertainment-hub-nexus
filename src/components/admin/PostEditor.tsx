@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import {
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -31,51 +30,49 @@ const PostEditor: React.FC<PostEditorProps> = ({
   onSavePost
 }) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {previewMode 
-              ? (selectedPost ? `Preview: ${selectedPost.title}` : 'Preview Post')
-              : (selectedPost ? 'Edit Post' : 'Create New Post')
-            }
-          </DialogTitle>
-        </DialogHeader>
-        
-        {previewMode ? (
-          <div className="py-4">
-            <div className="mb-4 flex justify-between">
-              <h1 className="text-2xl font-bold">{selectedPost?.title || 'Post Title'}</h1>
-              <Button variant="outline" onClick={() => setPreviewMode(false)}>
-                Back to Editor
+    <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>
+          {previewMode 
+            ? (selectedPost ? `Preview: ${selectedPost.title}` : 'Preview Post')
+            : (selectedPost ? 'Edit Post' : 'Create New Post')
+          }
+        </DialogTitle>
+      </DialogHeader>
+      
+      {previewMode ? (
+        <div className="py-4">
+          <div className="mb-4 flex justify-between">
+            <h1 className="text-2xl font-bold">{selectedPost?.title || 'Post Title'}</h1>
+            <Button variant="outline" onClick={() => setPreviewMode(false)}>
+              Back to Editor
+            </Button>
+          </div>
+          <MarkdownRenderer 
+            content={selectedPost?.content || ''} 
+            className="mt-4"
+          />
+        </div>
+      ) : (
+        <div className="py-4">
+          <RichTextEditor
+            initialContent={selectedPost?.content || ''}
+            onSave={onSavePost}
+            isSaving={isSaving}
+          />
+          {selectedPost && (
+            <div className="flex justify-center mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setPreviewMode(true)}
+              >
+                Preview Post
               </Button>
             </div>
-            <MarkdownRenderer 
-              content={selectedPost?.content || ''} 
-              className="mt-4"
-            />
-          </div>
-        ) : (
-          <div className="py-4">
-            <RichTextEditor
-              initialContent={selectedPost?.content || ''}
-              onSave={onSavePost}
-              isSaving={isSaving}
-            />
-            {selectedPost && (
-              <div className="flex justify-center mt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setPreviewMode(true)}
-                >
-                  Preview Post
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          )}
+        </div>
+      )}
+    </DialogContent>
   );
 };
 

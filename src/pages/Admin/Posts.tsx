@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  Dialog,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
@@ -56,6 +57,7 @@ const AdminPosts: React.FC = () => {
           },
           date: new Date().toISOString(),
           readTime: Math.ceil(postData.content.length / 1000),
+          category: postData.category || 'Uncategorized',
         };
         const updatedPosts = [newPost, ...posts];
         setPosts(updatedPosts);
@@ -99,11 +101,22 @@ const AdminPosts: React.FC = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Manage Posts</h1>
-        <DialogTrigger asChild>
-          <Button onClick={handleOpenCreatePost}>
-            <Plus className="mr-2 h-4 w-4" /> New Post
-          </Button>
-        </DialogTrigger>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={handleOpenCreatePost}>
+              <Plus className="mr-2 h-4 w-4" /> New Post
+            </Button>
+          </DialogTrigger>
+          <PostEditor 
+            isOpen={isOpen}
+            onOpenChange={setIsOpen}
+            selectedPost={selectedPost}
+            previewMode={previewMode}
+            setPreviewMode={setPreviewMode}
+            isSaving={isSaving}
+            onSavePost={handleSavePost}
+          />
+        </Dialog>
       </div>
 
       <Card>
@@ -128,16 +141,6 @@ const AdminPosts: React.FC = () => {
           <Button variant="outline" disabled={posts.length === 0}>Next</Button>
         </CardFooter>
       </Card>
-
-      <PostEditor 
-        isOpen={isOpen}
-        onOpenChange={setIsOpen}
-        selectedPost={selectedPost}
-        previewMode={previewMode}
-        setPreviewMode={setPreviewMode}
-        isSaving={isSaving}
-        onSavePost={handleSavePost}
-      />
     </div>
   );
 };
