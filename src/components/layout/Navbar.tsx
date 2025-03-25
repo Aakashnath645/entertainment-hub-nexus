@@ -46,7 +46,11 @@ const Navbar: React.FC = () => {
           className="text-2xl font-bold tracking-tight relative z-20"
           onClick={closeMenu}
         >
-          <span className="text-gradient">NexusBlog</span>
+          <img 
+            src="/lovable-uploads/5492abce-e7c9-46ec-9f9b-09b6753b7aa7.png" 
+            alt="NexusBlog Logo" 
+            className="h-12 w-auto"
+          />
         </Link>
         
         {/* Desktop Navigation */}
@@ -95,6 +99,14 @@ const Navbar: React.FC = () => {
           )}
         >
           <div className="pt-20 px-6 flex flex-col h-full">
+            <div className="flex justify-center mb-6">
+              <img 
+                src="/lovable-uploads/5492abce-e7c9-46ec-9f9b-09b6753b7aa7.png" 
+                alt="NexusBlog Logo" 
+                className="h-16 w-auto"
+              />
+            </div>
+            
             <SearchBar className="mb-8" />
             
             <nav className="flex flex-col space-y-4">

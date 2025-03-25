@@ -29,11 +29,15 @@ const AdminDashboard: React.FC = () => {
       <SidebarProvider>
         <Sidebar>
           <SidebarHeader>
-            <div className="flex items-center space-x-2">
-              <LayoutDashboard className="h-6 w-6" />
+            <div className="flex flex-col items-center space-y-2 p-4">
+              <img 
+                src="/lovable-uploads/5492abce-e7c9-46ec-9f9b-09b6753b7aa7.png" 
+                alt="NexusBlog Logo" 
+                className="h-14 w-auto mb-2"
+              />
               <h1 className="text-lg font-bold">Admin Panel</h1>
+              <p className="text-xs text-sidebar-foreground/70">Manage your content</p>
             </div>
-            <p className="text-xs text-sidebar-foreground/70">Manage your content</p>
           </SidebarHeader>
 
           <SidebarContent>
@@ -89,6 +93,11 @@ const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
+              <img 
+                src="/lovable-uploads/5492abce-e7c9-46ec-9f9b-09b6753b7aa7.png" 
+                alt="NexusBlog Logo" 
+                className="h-8 w-auto mr-2 hidden sm:block"
+              />
               <h2 className="text-xl font-bold">Admin Dashboard</h2>
             </div>
           </div>
