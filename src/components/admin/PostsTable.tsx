@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash, Eye } from 'lucide-react';
+import { Edit, Trash, Eye, Send } from 'lucide-react';
 import { Post } from '@/services/postService';
 import { Badge } from '@/components/ui/badge';
 
@@ -19,13 +19,15 @@ interface PostsTableProps {
   onEdit: (post: Post) => void;
   onPreview: (post: Post) => void;
   onDelete: (id: string) => void;
+  onPublish: (post: Post) => void;
 }
 
 const PostsTable: React.FC<PostsTableProps> = ({ 
   posts, 
   onEdit, 
   onPreview, 
-  onDelete 
+  onDelete,
+  onPublish
 }) => {
   // Function to get the appropriate status badge style
   const getStatusBadge = (status: string) => {
@@ -89,6 +91,16 @@ const PostsTable: React.FC<PostsTableProps> = ({
               >
                 <Eye className="h-4 w-4" />
               </Button>
+              {post.status === 'draft' && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => onPublish(post)}
+                  title="Publish"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              )}
               <Button 
                 variant="ghost" 
                 size="icon"

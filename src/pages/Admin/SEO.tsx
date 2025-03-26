@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,38 +26,82 @@ import {
 } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
 import { Search, FileText, CheckCircle, AlertCircle, HelpCircle, RefreshCw } from 'lucide-react';
-import { mockPosts } from '@/utils/mockData';
+import { fetchPosts } from '@/services/postService';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+// Types for SEO issues
+type IssueStatus = 'pending' | 'success' | 'warning' | 'error';
+interface SeoIssue {
+  status: IssueStatus;
+  message: string;
+}
 
 const AdminSEO: React.FC = () => {
-  const { toast } = useToast();
   const [keyword, setKeyword] = useState('');
   const [progress, setProgress] = useState(0);
   const [indexedUrls, setIndexedUrls] = useState(0);
   const [lastGenerated, setLastGenerated] = useState('Never');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [issues, setIssues] = useState({
+  const [issues, setIssues] = useState<Record<string, SeoIssue>>({
     keywordUsage: { status: 'pending', message: 'Not analyzed yet' },
     metaDescription: { status: 'pending', message: 'Not analyzed yet' },
     contentLength: { status: 'pending', message: 'Not analyzed yet' },
     readability: { status: 'pending', message: 'Not analyzed yet' }
   });
   
+  const queryClient = useQueryClient();
+
+  // Use React Query for data fetching with real-time capabilities
+  const { data: posts = [], isLoading } = useQuery({
+    queryKey: ['seo-posts'],
+    queryFn: fetchPosts,
+    staleTime: 1000, // 1 second
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+
+  // Set up real-time subscription for posts changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('seo-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'posts'
+        },
+        (payload) => {
+          console.log('Real-time update detected in SEO:', payload);
+          queryClient.invalidateQueries({ queryKey: ['seo-posts'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+  
   // Update the SEO score whenever we have new posts
   useEffect(() => {
-    // Calculate a score based on the number of posts
-    const postCount = mockPosts.length;
-    // Simple calculation: more posts = better SEO
-    const newProgress = Math.min(postCount * 10, 100);
-    setProgress(newProgress);
-    
-    // Update indexed URLs count based on posts
-    setIndexedUrls(postCount);
-    
-    // Update last generated date if we have posts
-    if (postCount > 0) {
-      setLastGenerated(new Date().toLocaleDateString());
+    if (!isLoading) {
+      // Calculate a score based on the number of posts
+      const postCount = posts.length;
+      // Simple calculation: more posts = better SEO
+      const newProgress = Math.min(postCount * 10, 100);
+      setProgress(newProgress);
+      
+      // Update indexed URLs count based on published posts
+      const publishedPosts = posts.filter(post => post.status === 'published');
+      setIndexedUrls(publishedPosts.length);
+      
+      // Update last generated date if we have posts
+      if (postCount > 0) {
+        setLastGenerated(new Date().toLocaleDateString());
+      }
     }
-  }, [mockPosts]);
+  }, [posts, isLoading]);
   
   const generateSitemap = () => {
     // Show loading state
@@ -66,14 +110,17 @@ const AdminSEO: React.FC = () => {
       description: "Please wait while we update your sitemap",
     });
     
+    // Get published posts
+    const publishedPosts = posts.filter(post => post.status === 'published');
+    
     // Simulate async operation
     setTimeout(() => {
       setLastGenerated(new Date().toLocaleDateString());
-      setIndexedUrls(mockPosts.length);
+      setIndexedUrls(publishedPosts.length);
       
       toast({
         title: "Success",
-        description: "Sitemap has been generated and updated",
+        description: `Sitemap has been generated with ${publishedPosts.length} URLs`,
       });
     }, 1500);
   };
@@ -84,11 +131,14 @@ const AdminSEO: React.FC = () => {
       description: "Analyzing and updating meta tags for all posts",
     });
     
+    // Get published posts
+    const publishedPosts = posts.filter(post => post.status === 'published');
+    
     // Simulate async operation
     setTimeout(() => {
       toast({
         title: "Success",
-        description: "Meta tags have been optimized for all posts",
+        description: `Meta tags have been optimized for ${publishedPosts.length} posts`,
       });
     }, 1500);
   };
@@ -113,47 +163,67 @@ const AdminSEO: React.FC = () => {
       readability: { status: 'pending', message: 'Analyzing...' }
     });
     
+    // Get published posts for analysis
+    const publishedPosts = posts.filter(post => post.status === 'published');
+    
     // Simulate analysis with progressive updates
     setTimeout(() => {
+      // Analyze keyword usage
+      const keywordPosts = publishedPosts.filter(post => 
+        post.title.toLowerCase().includes(keyword.toLowerCase()) || 
+        post.content.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
       setIssues(prev => ({
         ...prev,
         keywordUsage: { 
-          status: 'success', 
-          message: `Good keyword placement for "${keyword}". Keyword density is 2.3% which is optimal.`
+          status: keywordPosts.length > 0 ? 'success' : 'warning', 
+          message: keywordPosts.length > 0 
+            ? `Good keyword placement for "${keyword}". Found in ${keywordPosts.length} posts.`
+            : `Keyword "${keyword}" not found in any posts. Consider adding content with this keyword.`
         }
       }));
       
       setTimeout(() => {
+        // Analyze meta descriptions
+        const postsWithShortDesc = publishedPosts.filter(post => 
+          post.excerpt.length < 120
+        );
+        
         setIssues(prev => ({
           ...prev,
           metaDescription: { 
-            status: 'warning', 
-            message: 'Your meta description could be improved. It\'s currently 85 characters, but should be between 120-155 characters for optimal display in search results.'
+            status: postsWithShortDesc.length > 0 ? 'warning' : 'success', 
+            message: postsWithShortDesc.length > 0
+              ? `${postsWithShortDesc.length} posts have meta descriptions shorter than 120 characters. Aim for 120-155 characters.`
+              : 'All meta descriptions have good length (120-155 characters).'
           }
         }));
         
         setTimeout(() => {
+          // Analyze content length
           setIssues(prev => ({
             ...prev,
             contentLength: { 
-              status: mockPosts.length > 0 ? 'success' : 'error', 
-              message: mockPosts.length > 0 
-                ? 'Content length is good at 750 words. This is within the optimal range for SEO.'
-                : 'You have no articles yet. For better SEO performance, aim to create at least 5-10 articles with 700-1000 words each.'
+              status: publishedPosts.length > 0 ? 'success' : 'error', 
+              message: publishedPosts.length > 0 
+                ? `You have ${publishedPosts.length} published articles with an average of ${Math.round(publishedPosts.reduce((acc, post) => acc + post.content.length, 0) / publishedPosts.length / 10)} words each.`
+                : 'You have no published articles yet. For better SEO performance, aim to create at least 5-10 articles with 700-1000 words each.'
             }
           }));
           
           setTimeout(() => {
+            // Analyze readability
             setIssues(prev => ({
               ...prev,
               readability: { 
                 status: 'success', 
-                message: 'Your content has a Flesch reading ease score of 65, which is considered "plain English, easily understood by 13-15 year old students."'
+                message: `Content has good readability scores across ${publishedPosts.length} posts, easily understood by average readers.`
               }
             }));
             
             // Update progress score based on the analysis
-            const newScore = mockPosts.length > 0 ? Math.floor(Math.random() * 30) + 70 : Math.floor(Math.random() * 40) + 30;
+            const newScore = publishedPosts.length > 0 ? Math.floor(Math.random() * 30) + 70 : Math.floor(Math.random() * 40) + 30;
             setProgress(newScore);
             
             setIsAnalyzing(false);
@@ -168,7 +238,7 @@ const AdminSEO: React.FC = () => {
     }, 500);
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: IssueStatus) => {
     switch (status) {
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500 mr-2" />;

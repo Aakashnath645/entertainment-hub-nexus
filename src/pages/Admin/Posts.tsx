@@ -35,8 +35,8 @@ const AdminPosts: React.FC = () => {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['admin-posts'],
     queryFn: fetchPosts,
-    staleTime: 5000, // 5 seconds
-    refetchInterval: 10000, // Refetch every 10 seconds
+    staleTime: 1000, // 1 second
+    refetchInterval: 5000, // Refetch every 5 seconds
   });
 
   // Set up real-time subscription for posts changes
@@ -147,6 +147,24 @@ const AdminPosts: React.FC = () => {
     }
   };
 
+  const handlePublish = async (post: Post) => {
+    try {
+      const updatedPost = await updatePost(post.id, {
+        status: 'published',
+        date: new Date().toISOString(),
+      }, post.author.id);
+      
+      if (updatedPost) {
+        toast.success("Post published successfully");
+        // Invalidate the posts query to trigger a refetch
+        queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      }
+    } catch (error) {
+      console.error("Error publishing post:", error);
+      toast.error("Failed to publish post");
+    }
+  };
+
   const handleOpenCreatePost = () => {
     setSelectedPost(null);
     setPreviewMode(false);
@@ -204,7 +222,8 @@ const AdminPosts: React.FC = () => {
               posts={posts} 
               onEdit={handleEditPost} 
               onPreview={handlePreviewPost} 
-              onDelete={handleDelete} 
+              onDelete={handleDelete}
+              onPublish={handlePublish}
             />
           )}
         </CardContent>
