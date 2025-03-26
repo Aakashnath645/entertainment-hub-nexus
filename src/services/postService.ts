@@ -387,4 +387,28 @@ export const fetchFeaturedPosts = async (): Promise<Post[]> => {
   }
 };
 
-// Other utility functions can be added as needed
+// Fetch popular posts
+export const fetchPopularPosts = async (): Promise<Post[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('popular', true)
+      .eq('status', 'published')
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching popular posts:", error);
+      return [];
+    }
+
+    const posts = await Promise.all(
+      (data as DatabasePost[]).map(async (dbPost) => await transformPost(dbPost))
+    );
+
+    return posts;
+  } catch (error) {
+    console.error("Error in fetchPopularPosts:", error);
+    return [];
+  }
+};
