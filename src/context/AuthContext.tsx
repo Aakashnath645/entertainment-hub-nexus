@@ -1,14 +1,17 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { isAdmin } from '@/config/firebase';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 
 interface AuthContextProps {
   isAdmin: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   adminEmail: string | null;
-  setAdminEmail: (email: string | null) => void;
   resetPassword: (email: string) => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -22,58 +25,115 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAdminState, setIsAdmin] = useState(false);
-  const [adminEmail, setAdminEmail] = useState<string | null>(
-    localStorage.getItem('adminEmail')
-  );
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Check if admin is logged in from localStorage on component mount
   useEffect(() => {
-    const storedAdmin = localStorage.getItem('isAdmin') === 'true';
-    setIsAdmin(storedAdmin);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setAdminEmail(currentSession?.user?.email ?? null);
+        setIsAdmin(!!currentSession?.user);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setAdminEmail(currentSession?.user?.email ?? null);
+      setIsAdmin(!!currentSession?.user);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Update localStorage when isAdmin changes
-  useEffect(() => {
-    localStorage.setItem('isAdmin', isAdminState.toString());
-  }, [isAdminState]);
+  const login = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-  // Update localStorage when adminEmail changes
-  useEffect(() => {
-    if (adminEmail) {
-      localStorage.setItem('adminEmail', adminEmail);
-    } else {
-      localStorage.removeItem('adminEmail');
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+
+      toast.success("Logged in successfully");
+      return true;
+    } catch (error: any) {
+      toast.error(error.message || "Login failed");
+      return false;
     }
-  }, [adminEmail]);
-
-  const login = (password: string) => {
-    const validPassword = isAdmin(password);
-    setIsAdmin(validPassword);
-    return validPassword;
   };
 
-  const logout = () => {
-    setIsAdmin(false);
-    setAdminEmail(null);
+  const signup = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+
+      toast.success("Account created successfully! Check your email for confirmation.");
+      return true;
+    } catch (error: any) {
+      toast.error(error.message || "Signup failed");
+      return false;
+    }
   };
 
-  // Mock function for password reset
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Logged out successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Logout failed");
+    }
+  };
+
   const resetPassword = async (email: string) => {
-    // This is a mock implementation since we're not using Firebase auth
-    console.log(`Password reset requested for: ${email}`);
-    // Add a slight delay to simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return Promise.resolve();
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Password reset link sent to your email");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send password reset email");
+    }
   };
 
   const value = {
-    isAdmin: isAdminState,
+    isAdmin,
     login,
+    signup,
     logout,
     adminEmail,
-    setAdminEmail,
-    resetPassword
+    resetPassword,
+    loading
   };
 
   return (

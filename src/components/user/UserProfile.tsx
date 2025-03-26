@@ -19,15 +19,15 @@ const UserProfile: React.FC = () => {
   const { isAdmin, logout, adminEmail } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
   if (!isAdmin) {
     return (
-      <Tooltip>
-        <TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
           <TooltipTrigger asChild>
             <Button 
               variant="ghost" 
@@ -42,8 +42,8 @@ const UserProfile: React.FC = () => {
           <TooltipContent>
             <p>Admin Area</p>
           </TooltipContent>
-        </TooltipProvider>
-      </Tooltip>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const AdminLogin: React.FC = () => {
-  const { login, setAdminEmail } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/admin";
@@ -34,16 +34,11 @@ const AdminLogin: React.FC = () => {
     }
   });
 
-  const onSubmit = (values: FormValues) => {
-    const success = login(values.password);
+  const onSubmit = async (values: FormValues) => {
+    const success = await login(values.email, values.password);
     
     if (success) {
-      setAdminEmail(values.email);
-      toast.success("Login successful");
       navigate(from, { replace: true });
-    } else {
-      toast.error("Invalid password");
-      form.setError('password', { message: 'Invalid password' });
     }
   };
 
@@ -110,7 +105,7 @@ const AdminLogin: React.FC = () => {
                           <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input 
                             type="password" 
-                            placeholder="Enter admin password" 
+                            placeholder="Enter your password" 
                             className="pl-10" 
                             {...field} 
                           />
@@ -128,7 +123,6 @@ const AdminLogin: React.FC = () => {
                   Sign In
                 </Button>
                 <div className="text-sm text-center text-muted-foreground">
-                  <p>Default password: admin123</p>
                   <p className="mt-2">
                     Don't have an account?{" "}
                     <Link to="/admin-signup" className="text-primary hover:underline">

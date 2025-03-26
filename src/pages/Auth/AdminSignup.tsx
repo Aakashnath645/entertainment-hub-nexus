@@ -25,7 +25,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const AdminSignup: React.FC = () => {
-  const { login, setAdminEmail } = useAuth();
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<FormValues>({
@@ -37,17 +37,12 @@ const AdminSignup: React.FC = () => {
     }
   });
 
-  const onSubmit = (values: FormValues) => {
-    // Since we're using a simple password check, we'll just verify against the hardcoded password
-    const success = login(values.password);
+  const onSubmit = async (values: FormValues) => {
+    const success = await signup(values.email, values.password);
     
     if (success) {
-      setAdminEmail(values.email);
-      toast.success("Account created successfully");
-      navigate('/admin', { replace: true });
-    } else {
-      toast.error("Invalid admin password. Use the default password or set VITE_ADMIN_PASSWORD");
-      form.setError('password', { message: 'Invalid admin password' });
+      // After successful signup, navigate to login since they may need to confirm email
+      navigate('/admin-login');
     }
   };
 
@@ -114,7 +109,7 @@ const AdminSignup: React.FC = () => {
                           <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input 
                             type="password" 
-                            placeholder="Enter admin password (admin123)" 
+                            placeholder="Create a strong password" 
                             className="pl-10" 
                             {...field} 
                           />
@@ -136,7 +131,7 @@ const AdminSignup: React.FC = () => {
                           <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input 
                             type="password" 
-                            placeholder="Confirm password" 
+                            placeholder="Confirm your password" 
                             className="pl-10" 
                             {...field} 
                           />
@@ -154,7 +149,6 @@ const AdminSignup: React.FC = () => {
                   Create Account
                 </Button>
                 <div className="text-sm text-center text-muted-foreground">
-                  <p>Default password: admin123</p>
                   <p className="mt-2">
                     Already have an account?{" "}
                     <Link to="/admin-login" className="text-primary hover:underline">
