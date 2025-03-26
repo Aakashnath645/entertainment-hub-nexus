@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -8,29 +9,61 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, Calendar, BarChart2, TrendingUp, AlertCircle } from 'lucide-react';
-import { mockPosts } from '@/utils/mockData';
 import { useQuery } from '@tanstack/react-query';
-import { fetchPosts } from '@/api/mockApiService';
+import { fetchPosts } from '@/services/postService';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminIndex: React.FC = () => {
-  // Use React Query to fetch posts
+  // Use React Query to fetch posts with real-time updates
   const { data: posts = [] } = useQuery({
     queryKey: ['posts'],
     queryFn: fetchPosts,
-    staleTime: 30000, // 30 seconds
+    staleTime: 5000, // 5 seconds
+    refetchInterval: 10000, // Refetch every 10 seconds
   });
 
+  // Set up real-time subscription for posts changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('posts-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'posts'
+        },
+        (payload) => {
+          console.log('Real-time update:', payload);
+          // The useQuery hook will automatically refetch data when needed
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   // Calculate stats based on fetched data
+  const publishedPosts = posts.filter(post => post.status === 'published');
+  const draftPosts = posts.filter(post => post.status === 'draft');
+  const scheduledPosts = posts.filter(post => post.status === 'scheduled');
+  
   const stats = {
     totalPosts: posts.length,
-    publishedPosts: posts.length - 3,
-    draftPosts: 3,
-    scheduledPosts: 5,
-    totalViews: 12567,
-    averageReadTime: 4.2
+    publishedPosts: publishedPosts.length,
+    draftPosts: draftPosts.length,
+    scheduledPosts: scheduledPosts.length,
+    totalViews: 12567, // This would ideally come from a analytics service
+    averageReadTime: posts.length > 0 
+      ? (posts.reduce((sum, post) => sum + post.readTime, 0) / posts.length).toFixed(1) 
+      : 0
   };
 
-  const recentPosts = posts.slice(0, 5);
+  const recentPosts = [...posts]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -101,30 +134,36 @@ const AdminIndex: React.FC = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-4">
-                {recentPosts.map((post) => (
-                  <li key={post.id} className="border-b pb-4 last:border-0 last:pb-0">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{post.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {post.category} • {new Date(post.date).toLocaleDateString()}
-                        </p>
+                {recentPosts.length > 0 ? (
+                  recentPosts.map((post) => (
+                    <li key={post.id} className="border-b pb-4 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{post.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {post.category} • {new Date(post.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          {post.trending && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800 flex items-center">
+                              <TrendingUp className="h-3 w-3 mr-1" /> Trending
+                            </span>
+                          )}
+                          {post.featured && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                              Featured
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-1">
-                        {post.trending && (
-                          <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800 flex items-center">
-                            <TrendingUp className="h-3 w-3 mr-1" /> Trending
-                          </span>
-                        )}
-                        {post.featured && (
-                          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                            Featured
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    </li>
+                  ))
+                ) : (
+                  <li className="py-4 text-center text-muted-foreground">
+                    No posts available yet. Create your first post to see it here.
                   </li>
-                ))}
+                )}
               </ul>
             </CardContent>
           </Card>

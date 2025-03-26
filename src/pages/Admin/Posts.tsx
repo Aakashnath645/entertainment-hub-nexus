@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,32 +21,47 @@ import PostEditor from '@/components/admin/PostEditor';
 import { fetchPosts, createPost, updatePost, deletePost, Post } from '@/services/postService';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const AdminPosts: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const { adminEmail } = useAuth();
+  const queryClient = useQueryClient();
 
+  // Use React Query for data fetching with real-time capabilities
+  const { data: posts = [], isLoading } = useQuery({
+    queryKey: ['admin-posts'],
+    queryFn: fetchPosts,
+    staleTime: 5000, // 5 seconds
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+
+  // Set up real-time subscription for posts changes
   useEffect(() => {
-    loadPosts();
-  }, []);
+    const channel = supabase
+      .channel('admin-posts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'posts'
+        },
+        (payload) => {
+          console.log('Real-time update detected:', payload);
+          // Invalidate the posts query to trigger a refetch
+          queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+        }
+      )
+      .subscribe();
 
-  const loadPosts = async () => {
-    setIsLoading(true);
-    try {
-      const fetchedPosts = await fetchPosts();
-      setPosts(fetchedPosts);
-    } catch (error) {
-      console.error("Error loading posts:", error);
-      toast.error("Failed to load posts");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const handleSavePost = async (postData: any) => {
     setIsSaving(true);
@@ -64,9 +80,9 @@ const AdminPosts: React.FC = () => {
         }, selectedPost.author.id);
         
         if (updatedPost) {
-          setPosts(prev => prev.map(post => 
-            post.id === selectedPost.id ? updatedPost : post
-          ));
+          toast.success("Post updated successfully");
+          // Invalidate the posts query to trigger a refetch
+          queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
         }
       } else {
         // Create new post
@@ -103,7 +119,9 @@ const AdminPosts: React.FC = () => {
         }, userId);
         
         if (newPost) {
-          setPosts(prev => [newPost, ...prev]);
+          toast.success("Post created successfully");
+          // Invalidate the posts query to trigger a refetch
+          queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
         }
       }
     } catch (error) {
@@ -116,9 +134,16 @@ const AdminPosts: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const success = await deletePost(id);
-    if (success) {
-      setPosts(prev => prev.filter(post => post.id !== id));
+    try {
+      const success = await deletePost(id);
+      if (success) {
+        toast.success("Post deleted successfully");
+        // Invalidate the posts query to trigger a refetch
+        queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("Failed to delete post");
     }
   };
 

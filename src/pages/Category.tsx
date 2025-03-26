@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
-import { Category as CategoryType, Post, getPostsByCategory } from '@/utils/mockData';
+import { Category as CategoryType, Post, fetchPostsByCategory } from '@/services/postService';
 import PostGrid from '@/components/posts/PostGrid';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { useQuery } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const sortOptions = [
   { value: 'latest', label: 'Most Recent' },
@@ -15,32 +17,36 @@ const sortOptions = [
 
 const Category: React.FC = () => {
   const { category } = useParams<{ category: string }>();
-  const [posts, setPosts] = useState<Post[]>([]);
   const [sortBy, setSortBy] = useState('latest');
   const [showSortMenu, setShowSortMenu] = useState(false);
   
-  useEffect(() => {
-    if (category) {
-      // Get category posts
-      const categoryPosts = getPostsByCategory(category as CategoryType);
-      
-      // Sort posts based on selected option
-      const sortedPosts = [...categoryPosts].sort((a, b) => {
-        if (sortBy === 'latest') {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        } else if (sortBy === 'oldest') {
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
-        }
-        // For trending, just use a basic implementation
-        return b.readTime - a.readTime;
-      });
-      
-      setPosts(sortedPosts);
-    }
+  // Fetch posts from Supabase
+  const { data: fetchedPosts = [], isLoading } = useQuery({
+    queryKey: ['posts', 'category', category, sortBy],
+    queryFn: () => fetchPostsByCategory(category as CategoryType),
+    staleTime: 5000, // 5 seconds for real-time updates
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+  
+  // Sort posts based on selected option
+  const posts = React.useMemo(() => {
+    if (!fetchedPosts) return [];
     
+    return [...fetchedPosts].sort((a, b) => {
+      if (sortBy === 'latest') {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      } else if (sortBy === 'oldest') {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      // For trending, just use read time as a basic implementation
+      return b.readTime - a.readTime;
+    });
+  }, [fetchedPosts, sortBy]);
+  
+  useEffect(() => {
     // Scroll to top when category changes
     window.scrollTo(0, 0);
-  }, [category, sortBy]);
+  }, [category]);
   
   const getCategoryTitle = (category: string | undefined) => {
     if (!category) return 'All Categories';
@@ -152,8 +158,25 @@ const Category: React.FC = () => {
             </div>
           </div>
           
-          {/* Posts grid */}
-          {posts.length > 0 ? (
+          {/* Posts grid with loading state */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array(6).fill(0).map((_, i) => (
+                <div key={i} className="border border-border rounded-xl overflow-hidden">
+                  <Skeleton className="h-48 w-full" />
+                  <div className="p-5 space-y-3">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <div className="flex justify-between pt-4">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : posts.length > 0 ? (
             <PostGrid posts={posts} />
           ) : (
             <div className="text-center py-16">

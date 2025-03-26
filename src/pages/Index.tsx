@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -5,12 +6,11 @@ import HeroSection from '@/components/home/HeroSection';
 import CategorySection from '@/components/home/CategorySection';
 import PopularPosts from '@/components/home/PopularPosts';
 import TrendingTopics from '@/components/home/TrendingTopics';
-import { posts } from '@/utils/mockData';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchPostsByCategory, fetchPopularPosts } from '@/api/mockApiService';
+import { fetchPosts, fetchPostsByCategory, fetchFeaturedPosts, fetchPopularPosts } from '@/services/postService';
 
 const Index: React.FC = () => {
   // Animation for elements when they enter viewport
@@ -31,40 +31,58 @@ const Index: React.FC = () => {
     };
   }, []);
 
-  // Use React Query to fetch data
+  // Use React Query to fetch data from Supabase
+  const { data: allPosts = [], isLoading: postsLoading } = useQuery({
+    queryKey: ['posts'],
+    queryFn: fetchPosts,
+    staleTime: 5000, // 5 seconds for real-time updates
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+
   const { data: moviePosts = [] } = useQuery({
     queryKey: ['posts', 'movie'],
     queryFn: () => fetchPostsByCategory('movie'),
-    staleTime: 30000, // 30 seconds
+    staleTime: 5000,
+    refetchInterval: 10000,
   });
 
   const { data: gamePosts = [] } = useQuery({
     queryKey: ['posts', 'game'],
     queryFn: () => fetchPostsByCategory('game'),
-    staleTime: 30000,
+    staleTime: 5000,
+    refetchInterval: 10000,
   });
 
   const { data: techPosts = [] } = useQuery({
     queryKey: ['posts', 'tech'],
     queryFn: () => fetchPostsByCategory('tech'),
-    staleTime: 30000,
+    staleTime: 5000,
+    refetchInterval: 10000,
+  });
+
+  const { data: featuredPosts = [] } = useQuery({
+    queryKey: ['posts', 'featured'],
+    queryFn: fetchFeaturedPosts,
+    staleTime: 5000,
+    refetchInterval: 10000,
   });
 
   const { data: popularPosts = [] } = useQuery({
     queryKey: ['posts', 'popular'],
     queryFn: fetchPopularPosts,
-    staleTime: 30000,
+    staleTime: 5000,
+    refetchInterval: 10000,
   });
   
   // Check if there are any posts
-  const hasContent = posts.length > 0;
+  const hasContent = allPosts.length > 0;
 
   return (
     <>
       <Navbar />
       <main>
         {/* Hero section */}
-        <HeroSection />
+        <HeroSection featuredPosts={featuredPosts} loading={postsLoading} />
         
         {/* Main content */}
         <div className="container mx-auto px-6 py-10">
