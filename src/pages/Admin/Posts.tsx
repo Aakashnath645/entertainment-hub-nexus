@@ -40,7 +40,15 @@ const AdminPosts: React.FC = () => {
       if (selectedPost) {
         const updatedPosts = posts.map(post => 
           post.id === selectedPost.id 
-            ? { ...post, ...postData, date: new Date().toISOString() } 
+            ? { 
+                ...post, 
+                ...postData, 
+                date: new Date().toISOString(),
+                author: {
+                  ...post.author,
+                  name: postData.authorName || post.author.name
+                }
+              } 
             : post
         );
         setPosts(updatedPosts);
@@ -52,12 +60,16 @@ const AdminPosts: React.FC = () => {
           id: String(Date.now()),
           ...postData,
           author: {
-            name: "Admin User",
-            avatar: "/placeholder.svg"
+            id: 'author-' + Date.now(),
+            name: postData.authorName || 'Anonymous',
+            avatar: "/placeholder.svg",
+            bio: '',
+            role: 'Contributor'
           },
           date: new Date().toISOString(),
           readTime: Math.ceil(postData.content.length / 1000),
-          category: postData.category || 'Uncategorized',
+          category: postData.category || 'tech',
+          imageUrl: 'https://source.unsplash.com/random/800x600/?technology',
         };
         const updatedPosts = [newPost, ...posts];
         setPosts(updatedPosts);

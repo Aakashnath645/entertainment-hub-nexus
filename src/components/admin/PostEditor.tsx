@@ -48,6 +48,9 @@ const PostEditor: React.FC<PostEditorProps> = ({
               Back to Editor
             </Button>
           </div>
+          <div className="text-sm text-muted-foreground mb-4">
+            By {selectedPost?.author?.name || 'Unknown Author'}
+          </div>
           <MarkdownRenderer 
             content={selectedPost?.content || ''} 
             className="mt-4"
@@ -57,6 +60,9 @@ const PostEditor: React.FC<PostEditorProps> = ({
         <div className="py-4">
           <RichTextEditor
             initialContent={selectedPost?.content || ''}
+            initialTitle={selectedPost?.title || ''}
+            initialExcerpt={selectedPost?.excerpt || ''}
+            initialAuthorName={selectedPost?.author?.name || ''}
             onSave={onSavePost}
             isSaving={isSaving}
           />
