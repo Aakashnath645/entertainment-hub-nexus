@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -15,7 +14,7 @@ const SignUp: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, setAdminEmail } = useAuth();
+  const { signup } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,24 +27,23 @@ const SignUp: React.FC = () => {
     try {
       setError('');
       setLoading(true);
-      const success = login(password);
+      const success = await signup(email, password);
       
       if (success) {
-        setAdminEmail(email);
         toast({
           title: "Success!",
           description: "Your account has been created.",
         });
         navigate('/');
       } else {
-        throw new Error("Invalid admin password");
+        throw new Error("Failed to create account");
       }
     } catch (err) {
-      setError('Failed to create an account. Please use the correct admin password.');
+      setError('Failed to create an account. Please try again.');
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create an account. Please use the correct admin password.",
+        description: "Failed to create an account. Please try again.",
       });
     } finally {
       setLoading(false);
