@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -14,7 +13,7 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, setAdminEmail } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,10 +22,9 @@ const SignIn: React.FC = () => {
     try {
       setError('');
       setLoading(true);
-      const success = login(password);
+      const success = await login(email, password);
       
       if (success) {
-        setAdminEmail(email);
         toast({
           title: "Success!",
           description: "You've successfully signed in.",
