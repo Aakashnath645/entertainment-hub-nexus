@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,52 +13,85 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
-import { mockPosts, Post } from '@/utils/mockData';
 import { toast } from 'sonner';
 import PostsTable from '@/components/admin/PostsTable';
 import EmptyPostsState from '@/components/admin/EmptyPostsState';
 import PostEditor from '@/components/admin/PostEditor';
+import { fetchPosts, createPost, updatePost, deletePost, Post } from '@/services/postService';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminPosts: React.FC = () => {
-  const { toast: uiToast } = useToast();
-  const [posts, setPosts] = useState<Post[]>([...mockPosts]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { adminEmail } = useAuth();
 
   useEffect(() => {
-    setPosts([...mockPosts]);
-  }, [mockPosts]);
+    loadPosts();
+  }, []);
 
-  const handleSavePost = (postData: any) => {
+  const loadPosts = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedPosts = await fetchPosts();
+      setPosts(fetchedPosts);
+    } catch (error) {
+      console.error("Error loading posts:", error);
+      toast.error("Failed to load posts");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSavePost = async (postData: any) => {
     setIsSaving(true);
     
-    setTimeout(() => {
+    try {
       if (selectedPost) {
-        const updatedPosts = posts.map(post => 
-          post.id === selectedPost.id 
-            ? { 
-                ...post, 
-                ...postData, 
-                date: new Date().toISOString(),
-                author: {
-                  ...post.author,
-                  name: postData.authorName || post.author.name
-                }
-              } 
-            : post
-        );
-        setPosts(updatedPosts);
-        mockPosts.length = 0;
-        updatedPosts.forEach(post => mockPosts.push(post));
-        toast.success("Post updated successfully");
-      } else {
-        const newPost = {
-          id: String(Date.now()),
-          ...postData,
+        // Update existing post
+        const updatedPost = await updatePost(selectedPost.id, {
+          title: postData.title,
+          excerpt: postData.excerpt,
+          content: postData.content,
           author: {
-            id: 'author-' + Date.now(),
+            ...selectedPost.author,
+            name: postData.authorName || selectedPost.author.name
+          }
+        }, selectedPost.author.id);
+        
+        if (updatedPost) {
+          setPosts(prev => prev.map(post => 
+            post.id === selectedPost.id ? updatedPost : post
+          ));
+        }
+      } else {
+        // Create new post
+        if (!adminEmail) {
+          toast.error("You must be logged in to create posts");
+          setIsSaving(false);
+          return;
+        }
+
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        
+        if (!userId) {
+          toast.error("Failed to get user ID");
+          setIsSaving(false);
+          return;
+        }
+
+        const newPost = await createPost({
+          title: postData.title,
+          excerpt: postData.excerpt,
+          content: postData.content,
+          category: 'tech', // Default category
+          imageUrl: 'https://source.unsplash.com/random/800x600/?technology',
+          author: {
+            id: userId,
             name: postData.authorName || 'Anonymous',
             avatar: "/placeholder.svg",
             bio: '',
@@ -68,27 +99,27 @@ const AdminPosts: React.FC = () => {
           },
           date: new Date().toISOString(),
           readTime: Math.ceil(postData.content.length / 1000),
-          category: postData.category || 'tech',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?technology',
-        };
-        const updatedPosts = [newPost, ...posts];
-        setPosts(updatedPosts);
-        mockPosts.length = 0;
-        updatedPosts.forEach(post => mockPosts.push(post));
-        toast.success("Post created successfully");
+          status: 'draft',
+        }, userId);
+        
+        if (newPost) {
+          setPosts(prev => [newPost, ...prev]);
+        }
       }
-      
+    } catch (error) {
+      console.error("Error saving post:", error);
+      toast.error("Failed to save post");
+    } finally {
       setIsSaving(false);
       setIsOpen(false);
-    }, 1000);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    const updatedPosts = posts.filter(post => post.id !== id);
-    setPosts(updatedPosts);
-    mockPosts.length = 0;
-    updatedPosts.forEach(post => mockPosts.push(post));
-    toast.success("Post deleted successfully");
+  const handleDelete = async (id: string) => {
+    const success = await deletePost(id);
+    if (success) {
+      setPosts(prev => prev.filter(post => post.id !== id));
+    }
   };
 
   const handleOpenCreatePost = () => {
@@ -137,7 +168,11 @@ const AdminPosts: React.FC = () => {
           <CardDescription>Manage and edit your content here</CardDescription>
         </CardHeader>
         <CardContent>
-          {posts.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : posts.length === 0 ? (
             <EmptyPostsState onCreatePost={handleOpenCreatePost} />
           ) : (
             <PostsTable 

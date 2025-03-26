@@ -30,15 +30,109 @@ export type Database = {
         }
         Relationships: []
       }
+      author_profiles: {
+        Row: {
+          avatar: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          name: string
+          role: string | null
+          social: Json | null
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          bio?: string | null
+          created_at?: string
+          id: string
+          name: string
+          role?: string | null
+          social?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          role?: string | null
+          social?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          author_id: string
+          category: Database["public"]["Enums"]["post_category"]
+          content: string
+          created_at: string
+          date: string
+          excerpt: string
+          featured: boolean | null
+          id: string
+          image_url: string
+          popular: boolean | null
+          read_time: number
+          scheduled_date: string | null
+          status: Database["public"]["Enums"]["post_status"] | null
+          title: string
+          trending: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          category: Database["public"]["Enums"]["post_category"]
+          content: string
+          created_at?: string
+          date?: string
+          excerpt: string
+          featured?: boolean | null
+          id?: string
+          image_url: string
+          popular?: boolean | null
+          read_time: number
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["post_status"] | null
+          title: string
+          trending?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          category?: Database["public"]["Enums"]["post_category"]
+          content?: string
+          created_at?: string
+          date?: string
+          excerpt?: string
+          featured?: boolean | null
+          id?: string
+          image_url?: string
+          popular?: boolean | null
+          read_time?: number
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["post_status"] | null
+          title?: string
+          trending?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      post_category: "movie" | "game" | "tech"
+      post_status: "draft" | "published" | "scheduled"
     }
     CompositeTypes: {
       [_ in never]: never
