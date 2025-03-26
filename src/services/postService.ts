@@ -92,13 +92,21 @@ export const transformPost = async (dbPost: DatabasePost): Promise<Post> => {
     };
   }
 
+  // Type-safe handling of the social field
+  const socialData = authorProfile.social as any;
+  const social = socialData ? {
+    twitter: socialData.twitter || null,
+    linkedin: socialData.linkedin || null,
+    website: socialData.website || null
+  } : undefined;
+
   const author: Author = {
     id: authorProfile.id,
     name: authorProfile.name,
     avatar: authorProfile.avatar,
     bio: authorProfile.bio,
     role: authorProfile.role,
-    social: authorProfile.social
+    social
   };
 
   return {
