@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Author } from '@/utils/mockData';
 import { toast } from 'sonner';
@@ -55,9 +54,7 @@ export interface AuthorProfile {
   };
 }
 
-// Convert database post to application post format
 export const transformPost = async (dbPost: DatabasePost): Promise<Post> => {
-  // Fetch the author profile
   const { data: authorProfile, error: authorError } = await supabase
     .from('author_profiles')
     .select('*')
@@ -66,7 +63,6 @@ export const transformPost = async (dbPost: DatabasePost): Promise<Post> => {
 
   if (authorError) {
     console.error("Error fetching author:", authorError);
-    // Fallback author if not found
     const author: Author = {
       id: dbPost.author_id,
       name: 'Unknown Author',
@@ -93,7 +89,6 @@ export const transformPost = async (dbPost: DatabasePost): Promise<Post> => {
     };
   }
 
-  // Type-safe handling of the social field
   const socialData = authorProfile.social as any;
   const social = socialData ? {
     twitter: socialData.twitter || null,
@@ -128,7 +123,6 @@ export const transformPost = async (dbPost: DatabasePost): Promise<Post> => {
   };
 };
 
-// Transform app post to database format
 export const transformToDbPost = (post: Post, authorId: string): Omit<DatabasePost, 'id' | 'created_at' | 'updated_at'> => {
   return {
     title: post.title,
@@ -147,7 +141,6 @@ export const transformToDbPost = (post: Post, authorId: string): Omit<DatabasePo
   };
 };
 
-// Fetch all posts
 export const fetchPosts = async (): Promise<Post[]> => {
   try {
     console.log('Fetching all posts');
@@ -164,7 +157,6 @@ export const fetchPosts = async (): Promise<Post[]> => {
 
     console.log(`Found ${data?.length || 0} posts`);
     
-    // Transform database posts to application posts
     const posts = await Promise.all(
       (data as DatabasePost[]).map(async (dbPost) => await transformPost(dbPost))
     );
@@ -177,7 +169,6 @@ export const fetchPosts = async (): Promise<Post[]> => {
   }
 };
 
-// Fetch a post by ID
 export const fetchPostById = async (id: string): Promise<Post | null> => {
   try {
     const { data, error } = await supabase
@@ -200,16 +191,13 @@ export const fetchPostById = async (id: string): Promise<Post | null> => {
   }
 };
 
-// Create a new post
 export const createPost = async (post: Omit<Post, 'id'>, authorId: string): Promise<Post | null> => {
   try {
-    // First ensure the author profile exists
     await ensureAuthorProfile(authorId, post.author.name);
     
-    // Convert to database format
     const dbPost = transformToDbPost({
       ...post,
-      id: 'temp-id'  // Temporary ID, will be replaced by database
+      id: 'temp-id'
     }, authorId);
 
     const { data, error } = await supabase
@@ -234,15 +222,12 @@ export const createPost = async (post: Omit<Post, 'id'>, authorId: string): Prom
   }
 };
 
-// Update an existing post
 export const updatePost = async (id: string, post: Partial<Post>, authorId: string): Promise<Post | null> => {
   try {
-    // Ensure author profile exists if author name is provided
     if (post.author?.name) {
       await ensureAuthorProfile(authorId, post.author.name);
     }
     
-    // Only update the fields that are provided
     const updateData: Partial<DatabasePost> = {};
     
     if (post.title !== undefined) updateData.title = post.title;
@@ -281,7 +266,6 @@ export const updatePost = async (id: string, post: Partial<Post>, authorId: stri
   }
 };
 
-// Delete a post
 export const deletePost = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -304,22 +288,19 @@ export const deletePost = async (id: string): Promise<boolean> => {
   }
 };
 
-// Ensure author profile exists
 export const ensureAuthorProfile = async (authorId: string, authorName: string): Promise<void> => {
   try {
-    // Check if profile exists
     const { data: existingProfile, error: checkError } = await supabase
       .from('author_profiles')
       .select('id')
       .eq('id', authorId)
       .single();
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = not found
+    if (checkError && checkError.code !== 'PGRST116') {
       console.error("Error checking author profile:", checkError);
       return;
     }
 
-    // If profile doesn't exist, create it
     if (!existingProfile) {
       const { error: insertError } = await supabase
         .from('author_profiles')
@@ -340,7 +321,6 @@ export const ensureAuthorProfile = async (authorId: string, authorName: string):
   }
 };
 
-// Fetch posts by category
 export const fetchPostsByCategory = async (category: Category): Promise<Post[]> => {
   try {
     console.log(`Fetching posts for category: ${category}`);
@@ -348,7 +328,7 @@ export const fetchPostsByCategory = async (category: Category): Promise<Post[]> 
       .from('posts')
       .select('*')
       .eq('category', category)
-      .eq('status', 'published')  // Explicitly filter by published status
+      .eq('status', 'published')
       .order('date', { ascending: false });
 
     if (error) {
@@ -369,7 +349,6 @@ export const fetchPostsByCategory = async (category: Category): Promise<Post[]> 
   }
 };
 
-// Fetch featured posts
 export const fetchFeaturedPosts = async (): Promise<Post[]> => {
   try {
     console.log("Fetching featured posts");
@@ -377,7 +356,7 @@ export const fetchFeaturedPosts = async (): Promise<Post[]> => {
       .from('posts')
       .select('*')
       .eq('featured', true)
-      .eq('status', 'published')  // Explicitly filter by published status
+      .eq('status', 'published')
       .order('date', { ascending: false });
 
     if (error) {
@@ -398,7 +377,6 @@ export const fetchFeaturedPosts = async (): Promise<Post[]> => {
   }
 };
 
-// Fetch popular posts
 export const fetchPopularPosts = async (): Promise<Post[]> => {
   try {
     console.log("Fetching popular posts");
@@ -406,7 +384,7 @@ export const fetchPopularPosts = async (): Promise<Post[]> => {
       .from('posts')
       .select('*')
       .eq('popular', true)
-      .eq('status', 'published')  // Explicitly filter by published status
+      .eq('status', 'published')
       .order('date', { ascending: false });
 
     if (error) {
