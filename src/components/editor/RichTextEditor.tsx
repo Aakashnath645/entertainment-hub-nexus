@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ interface RichTextEditorProps {
   initialAuthorName?: string;
   onSave: (data: any) => void;
   isSaving: boolean;
+  onContentUpdate?: (data: any) => void; // New prop for live updates
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
@@ -30,13 +31,26 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   initialExcerpt = '',
   initialAuthorName = '',
   onSave,
-  isSaving
+  isSaving,
+  onContentUpdate
 }) => {
   const [content, setContent] = useState(initialContent);
   const [title, setTitle] = useState(initialTitle);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
   const [authorName, setAuthorName] = useState(initialAuthorName);
   
+  // Send content updates to parent for preview
+  useEffect(() => {
+    if (onContentUpdate) {
+      onContentUpdate({
+        title,
+        content,
+        authorName,
+        excerpt
+      });
+    }
+  }, [title, content, authorName, excerpt, onContentUpdate]);
+
   const handleSave = () => {
     onSave({
       title,
