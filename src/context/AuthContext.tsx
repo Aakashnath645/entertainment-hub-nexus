@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -35,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth state changed:", event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setAdminEmail(currentSession?.user?.email ?? null);
@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("Initial session check:", currentSession ? "Logged in" : "Not logged in");
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setAdminEmail(currentSession?.user?.email ?? null);
@@ -96,15 +97,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      console.log("Logging out...");
       const { error } = await supabase.auth.signOut();
 
       if (error) {
+        console.error("Logout error:", error);
         toast.error(error.message);
         return;
       }
 
       toast.success("Logged out successfully");
     } catch (error: any) {
+      console.error("Logout exception:", error);
       toast.error(error.message || "Logout failed");
     }
   };
@@ -142,3 +146,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

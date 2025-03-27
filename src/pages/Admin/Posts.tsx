@@ -86,13 +86,15 @@ const AdminPosts: React.FC = () => {
         }
       } else {
         // Create new post
-        if (!adminEmail) {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
           toast.error("You must be logged in to create posts");
           setIsSaving(false);
           return;
         }
 
-        const userId = (await supabase.auth.getUser()).data.user?.id;
+        const userId = user.id;
         
         if (!userId) {
           toast.error("Failed to get user ID");

@@ -150,6 +150,7 @@ export const transformToDbPost = (post: Post, authorId: string): Omit<DatabasePo
 // Fetch all posts
 export const fetchPosts = async (): Promise<Post[]> => {
   try {
+    console.log('Fetching all posts');
     const { data, error } = await supabase
       .from('posts')
       .select('*')
@@ -161,6 +162,8 @@ export const fetchPosts = async (): Promise<Post[]> => {
       return [];
     }
 
+    console.log(`Found ${data?.length || 0} posts`);
+    
     // Transform database posts to application posts
     const posts = await Promise.all(
       (data as DatabasePost[]).map(async (dbPost) => await transformPost(dbPost))
@@ -221,6 +224,7 @@ export const createPost = async (post: Omit<Post, 'id'>, authorId: string): Prom
       return null;
     }
 
+    console.log("Post created successfully:", data);
     toast.success("Post created successfully");
     return await transformPost(data as DatabasePost);
   } catch (error) {

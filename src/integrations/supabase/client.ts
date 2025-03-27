@@ -16,3 +16,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
   }
 });
+
+// Add debug logs to track authentication state
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log(`Supabase auth event: ${event}`, session ? "Session exists" : "No session");
+});
