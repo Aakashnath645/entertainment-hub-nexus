@@ -140,10 +140,7 @@ const AdminSEO: React.FC = () => {
 
   const handleSeoCheck = () => {
     if (!keyword.trim()) {
-      toast("Error", {
-        description: "Please enter a target keyword to analyze",
-        variant: "destructive"
-      });
+      toast.error("Please enter a target keyword to analyze");
       return;
     }
     
