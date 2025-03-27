@@ -39,50 +39,74 @@ const Index: React.FC = () => {
     refetchInterval: 10000, // Refetch every 10 seconds
   });
 
-  const { data: moviePosts = [] } = useQuery({
+  const { data: moviePosts = [], isLoading: movieLoading } = useQuery({
     queryKey: ['posts', 'movie'],
     queryFn: () => fetchPostsByCategory('movie'),
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: gamePosts = [] } = useQuery({
+  const { data: gamePosts = [], isLoading: gameLoading } = useQuery({
     queryKey: ['posts', 'game'],
     queryFn: () => fetchPostsByCategory('game'),
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: techPosts = [] } = useQuery({
+  const { data: techPosts = [], isLoading: techLoading } = useQuery({
     queryKey: ['posts', 'tech'],
     queryFn: () => fetchPostsByCategory('tech'),
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: featuredPosts = [] } = useQuery({
+  const { data: featuredPosts = [], isLoading: featuredLoading } = useQuery({
     queryKey: ['posts', 'featured'],
     queryFn: fetchFeaturedPosts,
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: popularPosts = [] } = useQuery({
+  const { data: popularPosts = [], isLoading: popularLoading } = useQuery({
     queryKey: ['posts', 'popular'],
     queryFn: fetchPopularPosts,
     staleTime: 5000,
     refetchInterval: 10000,
   });
   
-  // Check if there are any posts
-  const hasContent = allPosts.length > 0;
+  // Log post information for debugging
+  useEffect(() => {
+    console.log('All Posts:', allPosts.length);
+    console.log('Movie Posts:', moviePosts.length);
+    console.log('Game Posts:', gamePosts.length);
+    console.log('Tech Posts:', techPosts.length);
+    console.log('Featured Posts:', featuredPosts.length);
+    console.log('Popular Posts:', popularPosts.length);
+    
+    // Log published posts only
+    const publishedPosts = allPosts.filter(post => post.status === 'published');
+    console.log('Published Posts:', publishedPosts.length);
+    
+    // Log posts by category and status
+    const publishedMoviePosts = moviePosts.filter(post => post.status === 'published');
+    const publishedGamePosts = gamePosts.filter(post => post.status === 'published');
+    const publishedTechPosts = techPosts.filter(post => post.status === 'published');
+    
+    console.log('Published Movie Posts:', publishedMoviePosts.length);
+    console.log('Published Game Posts:', publishedGamePosts.length);
+    console.log('Published Tech Posts:', publishedTechPosts.length);
+  }, [allPosts, moviePosts, gamePosts, techPosts, featuredPosts, popularPosts]);
+  
+  // Check if there are any published posts
+  const publishedPosts = allPosts.filter(post => post.status === 'published');
+  const hasContent = publishedPosts.length > 0;
 
   return (
     <>
       <Navbar />
       <main>
         {/* Hero section */}
-        <HeroSection featuredPosts={featuredPosts} loading={postsLoading} />
+        <HeroSection featuredPosts={featuredPosts} loading={featuredLoading || postsLoading} />
         
         {/* Main content */}
         <div className="container mx-auto px-6 py-10">
@@ -161,7 +185,7 @@ const Index: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="text-center">Welcome to Your Entertainment Blog</CardTitle>
                     <CardDescription className="text-center">
-                      It looks like there aren't any articles posted yet. Start creating content to see it appear here.
+                      It looks like there aren't any published articles yet. Start creating content to see it appear here.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

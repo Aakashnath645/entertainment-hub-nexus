@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Author } from '@/utils/mockData';
 import { toast } from 'sonner';
@@ -338,25 +339,28 @@ export const ensureAuthorProfile = async (authorId: string, authorName: string):
 // Fetch posts by category
 export const fetchPostsByCategory = async (category: Category): Promise<Post[]> => {
   try {
+    console.log(`Fetching posts for category: ${category}`);
     const { data, error } = await supabase
       .from('posts')
       .select('*')
       .eq('category', category)
-      .eq('status', 'published')
+      .eq('status', 'published')  // Explicitly filter by published status
       .order('date', { ascending: false });
 
     if (error) {
-      console.error("Error fetching posts by category:", error);
+      console.error(`Error fetching posts by category ${category}:`, error);
       return [];
     }
 
+    console.log(`Found ${data?.length || 0} posts for category ${category}`);
+    
     const posts = await Promise.all(
       (data as DatabasePost[]).map(async (dbPost) => await transformPost(dbPost))
     );
 
     return posts;
   } catch (error) {
-    console.error("Error in fetchPostsByCategory:", error);
+    console.error(`Error in fetchPostsByCategory for ${category}:`, error);
     return [];
   }
 };
@@ -364,11 +368,12 @@ export const fetchPostsByCategory = async (category: Category): Promise<Post[]> 
 // Fetch featured posts
 export const fetchFeaturedPosts = async (): Promise<Post[]> => {
   try {
+    console.log("Fetching featured posts");
     const { data, error } = await supabase
       .from('posts')
       .select('*')
       .eq('featured', true)
-      .eq('status', 'published')
+      .eq('status', 'published')  // Explicitly filter by published status
       .order('date', { ascending: false });
 
     if (error) {
@@ -376,6 +381,8 @@ export const fetchFeaturedPosts = async (): Promise<Post[]> => {
       return [];
     }
 
+    console.log(`Found ${data?.length || 0} featured posts`);
+    
     const posts = await Promise.all(
       (data as DatabasePost[]).map(async (dbPost) => await transformPost(dbPost))
     );
@@ -390,11 +397,12 @@ export const fetchFeaturedPosts = async (): Promise<Post[]> => {
 // Fetch popular posts
 export const fetchPopularPosts = async (): Promise<Post[]> => {
   try {
+    console.log("Fetching popular posts");
     const { data, error } = await supabase
       .from('posts')
       .select('*')
       .eq('popular', true)
-      .eq('status', 'published')
+      .eq('status', 'published')  // Explicitly filter by published status
       .order('date', { ascending: false });
 
     if (error) {
@@ -402,6 +410,8 @@ export const fetchPopularPosts = async (): Promise<Post[]> => {
       return [];
     }
 
+    console.log(`Found ${data?.length || 0} popular posts`);
+    
     const posts = await Promise.all(
       (data as DatabasePost[]).map(async (dbPost) => await transformPost(dbPost))
     );
