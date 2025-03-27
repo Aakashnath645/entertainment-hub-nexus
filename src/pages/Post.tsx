@@ -11,37 +11,140 @@ import {
   MessageSquare,
   ArrowLeft,
   Globe,
-  Mail
+  Mail,
+  Eye
 } from 'lucide-react';
-import { Post as PostType, getPostById, getPostsByCategory } from '@/utils/mockData';
+import { Post as PostType } from '@/utils/mockData';
 import PostCard from '@/components/posts/PostCard';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import MarkdownRenderer from '@/components/editor/MarkdownRenderer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { fetchPostById, fetchPostsByCategory } from '@/services/postService';
+import { recordPostView, getPostViewCount } from '@/services/viewService';
+import { fetchComments, Comment } from '@/services/commentService';
+import CommentForm from '@/components/posts/CommentForm';
+import CommentList from '@/components/posts/CommentList';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Post: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<PostType | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<PostType[]>([]);
+  const queryClient = useQueryClient();
   
+  // Fetch post data with React Query
+  const { data: post, isLoading: postLoading } = useQuery({
+    queryKey: ['post', id],
+    queryFn: () => fetchPostById(id || ''),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Fetch view count with React Query
+  const { data: viewCount = 0, isLoading: viewsLoading } = useQuery({
+    queryKey: ['post-views', id],
+    queryFn: () => getPostViewCount(id || ''),
+    enabled: !!id,
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time updates
+  });
+
+  // Fetch comments with React Query
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ['post-comments', id],
+    queryFn: () => fetchComments(id || ''),
+    enabled: !!id,
+    staleTime: 1000, // 1 second
+  });
+
+  // Record a view when the post is loaded
   useEffect(() => {
     if (id) {
-      const fetchedPost = getPostById(id);
-      if (fetchedPost) {
-        setPost(fetchedPost);
-        // Get related posts from the same category
-        const related = getPostsByCategory(fetchedPost.category)
-          .filter(p => p.id !== id)
-          .slice(0, 3);
-        setRelatedPosts(related);
-      }
+      recordPostView(id);
     }
     
     // Scroll to top when post changes
     window.scrollTo(0, 0);
   }, [id]);
+
+  // Set up real-time subscription for views updates
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel('post-view-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_views',
+          filter: `post_id=eq.${id}`
+        },
+        (payload) => {
+          console.log('Real-time view update:', payload);
+          // Invalidate the views query to trigger a refetch
+          queryClient.invalidateQueries({ queryKey: ['post-views', id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, queryClient]);
+
+  // Set up real-time subscription for comments updates
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel('post-comment-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `post_id=eq.${id}`
+        },
+        (payload) => {
+          console.log('Real-time comment update:', payload);
+          // Invalidate the comments query to trigger a refetch
+          queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, queryClient]);
+
+  // Fetch related posts when post data is available
+  useEffect(() => {
+    if (post) {
+      const fetchRelated = async () => {
+        const relatedData = await fetchPostsByCategory(post.category);
+        const filtered = relatedData.filter(p => p.id !== id).slice(0, 3);
+        setRelatedPosts(filtered);
+      };
+      
+      fetchRelated();
+    }
+  }, [post, id]);
+  
+  if (postLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-64 bg-gray-200 rounded mb-4"></div>
+          <div className="h-4 w-40 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
   
   if (!post) {
     return (
@@ -73,6 +176,11 @@ const Post: React.FC = () => {
       default:
         return 'text-primary';
     }
+  };
+
+  // Handle comment added
+  const handleCommentAdded = () => {
+    queryClient.invalidateQueries({ queryKey: ['post-comments', id] });
   };
 
   return (
@@ -139,6 +247,10 @@ const Post: React.FC = () => {
                 <div className="flex items-center text-muted-foreground">
                   <Clock className="h-4 w-4 mr-2" />
                   <span>{post.readTime} min read</span>
+                </div>
+                <div className="flex items-center text-muted-foreground">
+                  <Eye className="h-4 w-4 mr-2" />
+                  <span>{viewCount} {viewCount === 1 ? 'view' : 'views'}</span>
                 </div>
               </div>
             </div>
@@ -235,72 +347,20 @@ const Post: React.FC = () => {
           <div className="max-w-3xl mx-auto mb-16">
             <div className="flex items-center gap-2 mb-6">
               <MessageSquare className="h-5 w-5" />
-              <h3 className="text-xl font-bold">Comments (5)</h3>
+              <h3 className="text-xl font-bold">Comments ({comments.length})</h3>
             </div>
             
-            <div className="p-6 bg-card border border-border rounded-xl mb-6">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                    <span className="font-medium">JD</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <textarea
-                    placeholder="Write a comment..."
-                    className="w-full p-3 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[100px] text-sm"
-                  ></textarea>
-                  <div className="mt-3 flex justify-end">
-                    <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">
-                      Post Comment
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Comment form */}
+            <CommentForm postId={id || ''} onCommentAdded={handleCommentAdded} />
             
-            {/* Sample comments */}
-            <div className="space-y-6">
-              <div className="p-6 bg-card border border-border rounded-xl">
-                <div className="flex gap-4">
-                  <img 
-                    src="https://randomuser.me/api/portraits/women/68.jpg" 
-                    alt="Sarah Thompson"
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">Sarah Thompson</span>
-                      <span className="text-xs text-muted-foreground">2 days ago</span>
-                    </div>
-                    <p className="text-sm mb-3">
-                      Great article! I've been following the developments in this space, and your analysis provides a fresh perspective.
-                    </p>
-                    <button className="text-xs text-primary hover:underline">Reply</button>
-                  </div>
-                </div>
+            {/* Comments list */}
+            {commentsLoading ? (
+              <div className="flex justify-center p-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
               </div>
-              
-              <div className="p-6 bg-card border border-border rounded-xl">
-                <div className="flex gap-4">
-                  <img 
-                    src="https://randomuser.me/api/portraits/men/42.jpg" 
-                    alt="Michael Chen"
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">Michael Chen</span>
-                      <span className="text-xs text-muted-foreground">3 days ago</span>
-                    </div>
-                    <p className="text-sm mb-3">
-                      I disagree with some points. While the technology is impressive, there are still significant hurdles to overcome before widespread adoption.
-                    </p>
-                    <button className="text-xs text-primary hover:underline">Reply</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ) : (
+              <CommentList comments={comments} />
+            )}
           </div>
           
           {/* Related posts */}
