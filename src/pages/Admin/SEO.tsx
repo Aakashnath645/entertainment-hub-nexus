@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -105,8 +104,7 @@ const AdminSEO: React.FC = () => {
   
   const generateSitemap = () => {
     // Show loading state
-    toast({
-      title: "Generating sitemap...",
+    toast("Generating sitemap...", {
       description: "Please wait while we update your sitemap",
     });
     
@@ -118,16 +116,14 @@ const AdminSEO: React.FC = () => {
       setLastGenerated(new Date().toLocaleDateString());
       setIndexedUrls(publishedPosts.length);
       
-      toast({
-        title: "Success",
+      toast("Success", {
         description: `Sitemap has been generated with ${publishedPosts.length} URLs`,
       });
     }, 1500);
   };
 
   const optimizeMetaTags = () => {
-    toast({
-      title: "Optimizing meta tags...",
+    toast("Optimizing meta tags...", {
       description: "Analyzing and updating meta tags for all posts",
     });
     
@@ -136,8 +132,7 @@ const AdminSEO: React.FC = () => {
     
     // Simulate async operation
     setTimeout(() => {
-      toast({
-        title: "Success",
+      toast("Success", {
         description: `Meta tags have been optimized for ${publishedPosts.length} posts`,
       });
     }, 1500);
@@ -145,8 +140,7 @@ const AdminSEO: React.FC = () => {
 
   const handleSeoCheck = () => {
     if (!keyword.trim()) {
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "Please enter a target keyword to analyze",
         variant: "destructive"
       });
@@ -228,8 +222,7 @@ const AdminSEO: React.FC = () => {
             
             setIsAnalyzing(false);
             
-            toast({
-              title: "SEO Analysis Complete",
+            toast("SEO Analysis Complete", {
               description: `Your SEO score is ${newScore}%`,
             });
           }, 500);
