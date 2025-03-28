@@ -23,7 +23,11 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-const AdminPosts: React.FC = () => {
+interface AdminPostsProps {
+  onToggleFeature?: (post: Post) => void;
+}
+
+const AdminPosts: React.FC<AdminPostsProps> = ({ onToggleFeature }) => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
@@ -185,6 +189,12 @@ const AdminPosts: React.FC = () => {
     setIsOpen(true);
   };
 
+  // Default toggle feature handler if none is provided from parent
+  const defaultToggleFeature = async (post: Post) => {
+    toast.error("Feature toggling not available");
+    console.warn("onToggleFeature prop was not provided to AdminPosts component");
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -226,6 +236,7 @@ const AdminPosts: React.FC = () => {
               onPreview={handlePreviewPost} 
               onDelete={handleDelete}
               onPublish={handlePublish}
+              onToggleFeature={onToggleFeature || defaultToggleFeature}
             />
           )}
         </CardContent>
