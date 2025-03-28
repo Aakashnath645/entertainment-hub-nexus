@@ -201,7 +201,7 @@ export type Database = {
       }
     }
     Enums: {
-      post_category: "movie" | "game" | "tech"
+      post_category: "movie" | "game" | "tech" | "series" | "comics"
       post_status: "draft" | "published" | "scheduled"
     }
     CompositeTypes: {
