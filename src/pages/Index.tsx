@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { PlusCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPosts, fetchPostsByCategory, fetchFeaturedPosts, fetchPopularPosts } from '@/services/postService';
+import { toast } from 'sonner';
 
 const Index: React.FC = () => {
   // Animation for elements when they enter viewport
@@ -32,42 +33,42 @@ const Index: React.FC = () => {
   }, []);
 
   // Use React Query to fetch data from Supabase
-  const { data: allPosts = [], isLoading: postsLoading } = useQuery({
+  const { data: allPosts = [], isLoading: postsLoading, error: postsError } = useQuery({
     queryKey: ['posts'],
     queryFn: fetchPosts,
     staleTime: 5000, // 5 seconds for real-time updates
     refetchInterval: 10000, // Refetch every 10 seconds
   });
 
-  const { data: moviePosts = [], isLoading: movieLoading } = useQuery({
+  const { data: moviePosts = [], isLoading: movieLoading, error: movieError } = useQuery({
     queryKey: ['posts', 'movie'],
     queryFn: () => fetchPostsByCategory('movie'),
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: gamePosts = [], isLoading: gameLoading } = useQuery({
+  const { data: gamePosts = [], isLoading: gameLoading, error: gameError } = useQuery({
     queryKey: ['posts', 'game'],
     queryFn: () => fetchPostsByCategory('game'),
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: techPosts = [], isLoading: techLoading } = useQuery({
+  const { data: techPosts = [], isLoading: techLoading, error: techError } = useQuery({
     queryKey: ['posts', 'tech'],
     queryFn: () => fetchPostsByCategory('tech'),
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: featuredPosts = [], isLoading: featuredLoading } = useQuery({
+  const { data: featuredPosts = [], isLoading: featuredLoading, error: featuredError } = useQuery({
     queryKey: ['posts', 'featured'],
     queryFn: fetchFeaturedPosts,
     staleTime: 5000,
     refetchInterval: 10000,
   });
 
-  const { data: popularPosts = [], isLoading: popularLoading } = useQuery({
+  const { data: popularPosts = [], isLoading: popularLoading, error: popularError } = useQuery({
     queryKey: ['posts', 'popular'],
     queryFn: fetchPopularPosts,
     staleTime: 5000,
@@ -95,7 +96,21 @@ const Index: React.FC = () => {
     console.log('Published Movie Posts:', publishedMoviePosts.length);
     console.log('Published Game Posts:', publishedGamePosts.length);
     console.log('Published Tech Posts:', publishedTechPosts.length);
-  }, [allPosts, moviePosts, gamePosts, techPosts, featuredPosts, popularPosts]);
+
+    // Show errors if any
+    if (postsError) console.error('Error fetching all posts:', postsError);
+    if (movieError) console.error('Error fetching movie posts:', movieError);
+    if (gameError) console.error('Error fetching game posts:', gameError);
+    if (techError) console.error('Error fetching tech posts:', techError);
+    if (featuredError) console.error('Error fetching featured posts:', featuredError);
+    if (popularError) console.error('Error fetching popular posts:', popularError);
+
+    // Display toast for any errors
+    if (postsError || movieError || gameError || techError || featuredError || popularError) {
+      toast.error("There was an error loading content. Please try refreshing the page.");
+    }
+  }, [allPosts, moviePosts, gamePosts, techPosts, featuredPosts, popularPosts, 
+      postsError, movieError, gameError, techError, featuredError, popularError]);
   
   // Check if there are any published posts
   const publishedPosts = allPosts.filter(post => post.status === 'published');

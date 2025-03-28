@@ -14,10 +14,29 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     persistSession: true,
     autoRefreshToken: true,
     storage: localStorage,
-  }
+    detectSessionInUrl: false,
+    flowType: 'implicit',
+  },
+  global: {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
 });
 
 // Add debug logs to track authentication state
 supabase.auth.onAuthStateChange((event, session) => {
   console.log(`Supabase auth event: ${event}`, session ? "Session exists" : "No session");
 });
+
+// Initialize session check on app load
+(async () => {
+  const { data } = await supabase.auth.getSession();
+  console.log('Session initialized:', data.session ? 'User is logged in' : 'No active session');
+})();
+
