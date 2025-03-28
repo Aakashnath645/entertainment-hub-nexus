@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash, Eye, Send } from 'lucide-react';
+import { Edit, Trash, Eye, Send, Star } from 'lucide-react';
 import { Post } from '@/services/postService';
 import { Badge } from '@/components/ui/badge';
 
@@ -20,6 +20,7 @@ interface PostsTableProps {
   onPreview: (post: Post) => void;
   onDelete: (id: string) => void;
   onPublish: (post: Post) => void;
+  onToggleFeature: (post: Post) => void; // New prop for toggling feature status
 }
 
 const PostsTable: React.FC<PostsTableProps> = ({ 
@@ -27,7 +28,8 @@ const PostsTable: React.FC<PostsTableProps> = ({
   onEdit, 
   onPreview, 
   onDelete,
-  onPublish
+  onPublish,
+  onToggleFeature
 }) => {
   // Function to get the appropriate status badge style
   const getStatusBadge = (status: string) => {
@@ -64,7 +66,14 @@ const PostsTable: React.FC<PostsTableProps> = ({
       <TableBody>
         {posts.map((post) => (
           <TableRow key={post.id}>
-            <TableCell className="font-medium">{post.title}</TableCell>
+            <TableCell className="font-medium">
+              <div className="flex items-center gap-2">
+                {post.featured && (
+                  <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                )}
+                {post.title}
+              </div>
+            </TableCell>
             <TableCell>
               <Badge variant="outline" className="capitalize">
                 {post.category}
@@ -75,6 +84,15 @@ const PostsTable: React.FC<PostsTableProps> = ({
               {getStatusBadge(post.status)}
             </TableCell>
             <TableCell className="text-right">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => onToggleFeature(post)}
+                title={post.featured ? "Remove from featured" : "Add to featured"}
+                className={post.featured ? "text-amber-500" : ""}
+              >
+                <Star className={`h-4 w-4 ${post.featured ? "fill-amber-500" : ""}`} />
+              </Button>
               <Button 
                 variant="ghost" 
                 size="icon"

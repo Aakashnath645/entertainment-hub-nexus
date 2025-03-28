@@ -15,7 +15,7 @@ import AdminLogin from "./pages/Auth/AdminLogin";
 import AdminSignup from "./pages/Auth/AdminSignup";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import AdminIndex from "./pages/Admin/Index";
-import AdminPosts from "./pages/Admin/Posts";
+import PostsWrapper from "./components/admin/PostsWrapper";
 import AdminSchedule from "./pages/Admin/Schedule";
 import AdminSEO from "./pages/Admin/SEO";
 
@@ -43,7 +43,7 @@ const App = () => (
                 </ProtectedRoute>
               }>
                 <Route index element={<AdminIndex />} />
-                <Route path="posts" element={<AdminPosts />} />
+                <Route path="posts" element={<PostsWrapper />} />
                 <Route path="schedule" element={<AdminSchedule />} />
                 <Route path="seo" element={<AdminSEO />} />
               </Route>
