@@ -1,28 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
-  Bold, 
-  Italic, 
-  List, 
-  ListOrdered,
-  Heading1,
-  Heading2, 
-  Image as ImageIcon,
-  Link as LinkIcon
-} from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface RichTextEditorProps {
   initialContent?: string;
   initialTitle?: string;
   initialExcerpt?: string;
   initialAuthorName?: string;
+  initialCategory?: string;
   onSave: (data: any) => void;
   isSaving: boolean;
-  onContentUpdate?: (data: any) => void; // New prop for live updates
+  onContentUpdate?: (data: any) => void;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
@@ -30,6 +28,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   initialTitle = '',
   initialExcerpt = '',
   initialAuthorName = '',
+  initialCategory = 'tech',
   onSave,
   isSaving,
   onContentUpdate
@@ -38,143 +37,108 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [title, setTitle] = useState(initialTitle);
   const [excerpt, setExcerpt] = useState(initialExcerpt);
   const [authorName, setAuthorName] = useState(initialAuthorName);
-  
-  // Send content updates to parent for preview
+  const [category, setCategory] = useState(initialCategory);
+
   useEffect(() => {
     if (onContentUpdate) {
       onContentUpdate({
         title,
         content,
         authorName,
-        excerpt
+        excerpt,
+        category
       });
     }
-  }, [title, content, authorName, excerpt, onContentUpdate]);
+  }, [title, content, authorName, excerpt, category, onContentUpdate]);
 
-  const handleSave = () => {
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
     onSave({
       title,
-      excerpt,
       content,
-      authorName
+      authorName,
+      excerpt,
+      category
     });
   };
 
-  const insertMarkdown = (markdownSyntax: string) => {
-    setContent(prev => prev + markdownSyntax);
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Article Title</Label>
+    <form onSubmit={handleSave} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Title</Label>
         <Input
           id="title"
-          placeholder="Enter title..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter post title"
+          className="w-full"
+          required
         />
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="excerpt">Short Excerpt</Label>
+
+      <div>
+        <Label htmlFor="excerpt">Excerpt</Label>
         <Textarea
           id="excerpt"
-          placeholder="Brief summary of your article..."
           value={excerpt}
           onChange={(e) => setExcerpt(e.target.value)}
-          rows={2}
+          placeholder="Enter a short description"
+          className="w-full h-20"
+          required
         />
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="authorName">Author Name</Label>
+
+      <div>
+        <Label htmlFor="authorName">Author</Label>
         <Input
           id="authorName"
-          placeholder="Enter your name..."
           value={authorName}
           onChange={(e) => setAuthorName(e.target.value)}
+          placeholder="Your name"
+          className="w-full"
+          required
         />
       </div>
       
-      <div className="border rounded-md p-1 flex flex-wrap gap-1 bg-muted/50">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('**Bold Text**')}
+      <div>
+        <Label htmlFor="category">Category</Label>
+        <Select
+          value={category}
+          onValueChange={setCategory}
         >
-          <Bold className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('*Italic Text*')}
-        >
-          <Italic className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('\n# Heading 1\n')}
-        >
-          <Heading1 className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('\n## Heading 2\n')}
-        >
-          <Heading2 className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('\n- List item\n- List item\n- List item\n')}
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('\n1. Ordered item\n2. Ordered item\n3. Ordered item\n')}
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('\n![Image description](https://example.com/image.jpg)\n')}
-        >
-          <ImageIcon className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => insertMarkdown('[Link text](https://example.com)')}
-        >
-          <LinkIcon className="h-4 w-4" />
-        </Button>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="movie">Movies & TV</SelectItem>
+            <SelectItem value="series">TV Series</SelectItem>
+            <SelectItem value="comics">Comics & Manga</SelectItem>
+            <SelectItem value="game">Gaming</SelectItem>
+            <SelectItem value="tech">Technology</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="content">Content (Markdown)</Label>
+
+      <div>
+        <Label htmlFor="content">Content</Label>
         <Textarea
           id="content"
-          placeholder="Write your article using Markdown syntax..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="min-h-[300px] font-mono text-sm"
+          placeholder="Write your post content here..."
+          className="w-full min-h-[300px]"
+          required
         />
       </div>
-      
+
       <Button 
-        onClick={handleSave} 
-        disabled={isSaving}
+        type="submit" 
         className="w-full"
+        disabled={isSaving}
       >
         {isSaving ? 'Saving...' : 'Save Post'}
       </Button>
-    </div>
+    </form>
   );
 };
 

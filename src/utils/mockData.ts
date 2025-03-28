@@ -1,5 +1,4 @@
-
-export type Category = 'movie' | 'game' | 'tech';
+export type Category = 'movie' | 'game' | 'tech' | 'series' | 'comics';
 
 export interface Author {
   id: string;

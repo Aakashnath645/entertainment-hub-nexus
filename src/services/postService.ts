@@ -1,8 +1,9 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Author } from '@/utils/mockData';
 import { toast } from 'sonner';
 
-export type Category = 'movie' | 'game' | 'tech';
+export type Category = 'movie' | 'game' | 'tech' | 'series' | 'comics';
 export type PostStatus = 'draft' | 'published' | 'scheduled';
 
 export interface Post {

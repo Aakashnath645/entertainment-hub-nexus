@@ -25,6 +25,10 @@ const PostCard: React.FC<PostCardProps> = ({
         return 'text-entertainment-game';
       case 'tech':
         return 'text-entertainment-tech';
+      case 'series':
+        return 'text-purple-600';
+      case 'comics':
+        return 'text-yellow-600';
       default:
         return 'text-primary';
     }

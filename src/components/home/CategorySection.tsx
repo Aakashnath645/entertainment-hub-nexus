@@ -30,6 +30,10 @@ const CategorySection: React.FC<CategorySectionProps> = ({
         return 'border-entertainment-game';
       case 'tech':
         return 'border-entertainment-tech';
+      case 'series':
+        return 'border-purple-600';
+      case 'comics':
+        return 'border-yellow-600';
       default:
         return 'border-primary';
     }

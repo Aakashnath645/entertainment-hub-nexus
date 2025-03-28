@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -14,7 +13,6 @@ import { fetchPosts, fetchPostsByCategory, fetchFeaturedPosts, fetchPopularPosts
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
-  // Animation for elements when they enter viewport
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -32,12 +30,11 @@ const Index: React.FC = () => {
     };
   }, []);
 
-  // Use React Query to fetch data from Supabase
   const { data: allPosts = [], isLoading: postsLoading, error: postsError } = useQuery({
     queryKey: ['posts'],
     queryFn: fetchPosts,
-    staleTime: 5000, // 5 seconds for real-time updates
-    refetchInterval: 10000, // Refetch every 10 seconds
+    staleTime: 5000,
+    refetchInterval: 10000,
   });
 
   const { data: moviePosts = [], isLoading: movieLoading, error: movieError } = useQuery({
@@ -74,8 +71,21 @@ const Index: React.FC = () => {
     staleTime: 5000,
     refetchInterval: 10000,
   });
-  
-  // Log post information for debugging
+
+  const { data: seriesPosts = [], isLoading: seriesLoading, error: seriesError } = useQuery({
+    queryKey: ['posts', 'series'],
+    queryFn: () => fetchPostsByCategory('series'),
+    staleTime: 5000,
+    refetchInterval: 10000,
+  });
+
+  const { data: comicsPosts = [], isLoading: comicsLoading, error: comicsError } = useQuery({
+    queryKey: ['posts', 'comics'],
+    queryFn: () => fetchPostsByCategory('comics'),
+    staleTime: 5000,
+    refetchInterval: 10000,
+  });
+
   useEffect(() => {
     console.log('All Posts:', allPosts.length);
     console.log('Movie Posts:', moviePosts.length);
@@ -83,36 +93,40 @@ const Index: React.FC = () => {
     console.log('Tech Posts:', techPosts.length);
     console.log('Featured Posts:', featuredPosts.length);
     console.log('Popular Posts:', popularPosts.length);
+    console.log('Series Posts:', seriesPosts.length);
+    console.log('Comics Posts:', comicsPosts.length);
     
-    // Log published posts only
     const publishedPosts = allPosts.filter(post => post.status === 'published');
     console.log('Published Posts:', publishedPosts.length);
     
-    // Log posts by category and status
     const publishedMoviePosts = moviePosts.filter(post => post.status === 'published');
     const publishedGamePosts = gamePosts.filter(post => post.status === 'published');
     const publishedTechPosts = techPosts.filter(post => post.status === 'published');
+    const publishedSeriesPosts = seriesPosts.filter(post => post.status === 'published');
+    const publishedComicsPosts = comicsPosts.filter(post => post.status === 'published');
     
     console.log('Published Movie Posts:', publishedMoviePosts.length);
     console.log('Published Game Posts:', publishedGamePosts.length);
     console.log('Published Tech Posts:', publishedTechPosts.length);
+    console.log('Published Series Posts:', publishedSeriesPosts.length);
+    console.log('Published Comics Posts:', publishedComicsPosts.length);
 
-    // Show errors if any
     if (postsError) console.error('Error fetching all posts:', postsError);
     if (movieError) console.error('Error fetching movie posts:', movieError);
     if (gameError) console.error('Error fetching game posts:', gameError);
     if (techError) console.error('Error fetching tech posts:', techError);
     if (featuredError) console.error('Error fetching featured posts:', featuredError);
     if (popularError) console.error('Error fetching popular posts:', popularError);
+    if (seriesError) console.error('Error fetching series posts:', seriesError);
+    if (comicsError) console.error('Error fetching comics posts:', comicsError);
 
-    // Display toast for any errors
-    if (postsError || movieError || gameError || techError || featuredError || popularError) {
+    if (postsError || movieError || gameError || techError || featuredError || popularError || 
+        seriesError || comicsError) {
       toast.error("There was an error loading content. Please try refreshing the page.");
     }
-  }, [allPosts, moviePosts, gamePosts, techPosts, featuredPosts, popularPosts, 
-      postsError, movieError, gameError, techError, featuredError, popularError]);
-  
-  // Check if there are any published posts
+  }, [allPosts, moviePosts, gamePosts, techPosts, featuredPosts, popularPosts, seriesPosts, comicsPosts,
+      postsError, movieError, gameError, techError, featuredError, popularError, seriesError, comicsError]);
+
   const publishedPosts = allPosts.filter(post => post.status === 'published');
   const hasContent = publishedPosts.length > 0;
 
@@ -120,17 +134,12 @@ const Index: React.FC = () => {
     <>
       <Navbar />
       <main>
-        {/* Hero section */}
         <HeroSection featuredPosts={featuredPosts} loading={featuredLoading || postsLoading} />
         
-        {/* Main content */}
         <div className="container mx-auto px-6 py-10">
           {hasContent ? (
-            // Regular content when posts exist
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Main content area - 3/4 width on large screens */}
               <div className="lg:col-span-3">
-                {/* Movies section */}
                 <div className="animate-on-scroll">
                   <CategorySection 
                     title="Movies & TV" 
@@ -139,7 +148,22 @@ const Index: React.FC = () => {
                   />
                 </div>
                 
-                {/* Games section */}
+                <div className="animate-on-scroll">
+                  <CategorySection 
+                    title="TV Series" 
+                    category="series" 
+                    posts={seriesPosts} 
+                  />
+                </div>
+                
+                <div className="animate-on-scroll">
+                  <CategorySection 
+                    title="Comics & Manga" 
+                    category="comics" 
+                    posts={comicsPosts} 
+                  />
+                </div>
+                
                 <div className="animate-on-scroll">
                   <CategorySection 
                     title="Gaming" 
@@ -148,7 +172,6 @@ const Index: React.FC = () => {
                   />
                 </div>
                 
-                {/* Tech section */}
                 <div className="animate-on-scroll">
                   <CategorySection 
                     title="Technology" 
@@ -158,7 +181,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
               
-              {/* Sidebar - 1/4 width on large screens */}
               <div className="lg:col-span-1 space-y-8">
                 <div className="animate-on-scroll">
                   <PopularPosts posts={popularPosts} />
@@ -167,7 +189,6 @@ const Index: React.FC = () => {
                   <TrendingTopics />
                 </div>
                 
-                {/* Newsletter signup */}
                 <div className="animate-on-scroll" style={{ animationDelay: '0.3s' }}>
                   <div className="bg-card border border-border/50 rounded-xl p-6">
                     <h3 className="font-semibold mb-3">Subscribe to Newsletter</h3>
@@ -193,7 +214,6 @@ const Index: React.FC = () => {
               </div>
             </div>
           ) : (
-            // Empty state when no posts exist
             <div className="py-16">
               <div className="max-w-3xl mx-auto">
                 <Card className="border-dashed animate-fade-in">
@@ -209,6 +229,16 @@ const Index: React.FC = () => {
                         title="Movies & TV" 
                         category="movie"
                         description="Share the latest film and TV show reviews" 
+                      />
+                      <CategoryEmptyCard 
+                        title="TV Series" 
+                        category="series"
+                        description="Review and discuss popular TV series" 
+                      />
+                      <CategoryEmptyCard 
+                        title="Comics & Manga" 
+                        category="comics"
+                        description="Cover comics, graphic novels and manga" 
                       />
                       <CategoryEmptyCard 
                         title="Gaming" 
@@ -242,7 +272,6 @@ const Index: React.FC = () => {
   );
 };
 
-// Component for empty category cards
 const CategoryEmptyCard: React.FC<{
   title: string;
   category: string;
@@ -256,6 +285,10 @@ const CategoryEmptyCard: React.FC<{
         return 'border-entertainment-game text-entertainment-game';
       case 'tech':
         return 'border-entertainment-tech text-entertainment-tech';
+      case 'series':
+        return 'border-entertainment-series text-entertainment-series';
+      case 'comics':
+        return 'border-entertainment-comics text-entertainment-comics';
       default:
         return 'border-primary text-primary';
     }
